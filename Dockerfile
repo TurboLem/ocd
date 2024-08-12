@@ -7,7 +7,7 @@ EXPOSE 5000
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["OCD/OCD.csproj", "OCD/"]
-RUN dotnet restore "OCD.csproj"
+RUN dotnet restore "OCD/OCD.csproj"
 COPY . .
 WORKDIR "/src/OCD"
 RUN dotnet build "OCD.csproj" -c Release -o /app/build
