@@ -5,4 +5,4 @@ services:
     image: ${DOCKER_REGISTRY-}ocd
     build:
       context: .
-      dockerfile: OCD/Dockerfile
+      dockerfile: Dockerfile
