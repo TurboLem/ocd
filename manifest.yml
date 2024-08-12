@@ -1,0 +1,109 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: #{ApplicationName}#
+  labels:
+    app: #{ApplicationName}#
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: #{ApplicationName}#
+  template:
+    metadata:
+      labels:
+        app: #{ApplicationName}#
+    spec:
+      containers:
+        - name: #{ApplicationName}#
+          image: #{RegistryAddress}#/#{ImageName}#:#{Version}#
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+          env:
+            - name: NODE_ENV
+              value: "#{StageEnvironment}#"
+
+            - name: NEXTAUTH_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: online-campaign-dashboard-config
+                  key: NEXTAUTH_URL
+
+            - name: GMAIL_SMTP_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: online-campaign-dashboard-config
+                  key: GMAIL_SMTP_USER
+
+            - name: CONTACT_API_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: online-campaign-dashboard-config
+                  key: CONTACT_API_USERNAME
+
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: online-campaign-dashboard-secrets
+                  key: DATABASE_URL
+
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: online-campaign-dashboard-secrets
+                  key: JWT_SECRET
+
+            - name: NEXTAUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: online-campaign-dashboard-secrets
+                  key: NEXTAUTH_SECRET
+
+            - name: GMAIL_SMTP_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: online-campaign-dashboard-secrets
+                  key: GMAIL_SMTP_PASS
+
+          ports:
+            - containerPort: 5000
+              name: http-fix
+
+          resources:
+            requests:
+              ephemeral-storage: 100Mi
+            limits:
+              ephemeral-storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: #{ApplicationName}#
+  labels:
+    app: #{ApplicationName}#-service
+spec:
+  selector:
+    app: #{ApplicationName}#
+  ports:
+    - name: http-cluster
+      port: 5000
+      protocol: TCP
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: #{ApplicationName}#-node
+  labels:
+    app: #{ApplicationName}#-service-node
+spec:
+  selector:
+    app: #{ApplicationName}#
+  ports:
+    - name: http-node
+      port: 5000
+      protocol: TCP
+  type: NodePort
