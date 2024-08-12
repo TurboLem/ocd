@@ -9,7 +9,8 @@ using OCD.Data;
 using OCD.Services;
 using OCD.Services.CampaignRequestService;
 
-
+//var smtpConfig = Environment.GetEnvironmentVariable("GMAIL_SMTP_USER");
+//var devDbConnString = Environment.GetEnvironmentVariable("DATABASE_URL");
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,7 +60,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddAuthenticationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<ApplicationUser>>();
 
-// for KOng, set Kestrel to use/listen port 80 since running on rancher
+// for Kong, set Kestrel to use/listen port 80 since running on rancher
 
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
