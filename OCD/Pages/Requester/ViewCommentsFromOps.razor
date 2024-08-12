@@ -1,0 +1,144 @@
+﻿@page "/requester-comments/{campaignId:int}"
+@using Microsoft.EntityFrameworkCore
+@using OCD.Components
+@using OCD.Data
+@using OCD.Models
+@inject NavigationManager NavigationManager
+@inject IDbContextFactory<DataContext> DbContextFactory
+@inject IDialogService DialogService
+
+<AuthorizeView Roles="Requester">
+    <Authorized>
+        <MudPaper Class="p-4" Style="max-width:100vw;height:100vh">
+            <MudText Typo="Typo.h6">
+                Comments for Campaign: @CampaignRequest.Description
+                
+            </MudText>
+            <MudDataGrid Class="shadow-md rounded-lg border grid mt-7"
+                         Items="@Comments"
+                         HorizontalScrollbar="false"
+                         Hover="true"
+                         Striped="true"
+                         RowsPerPageOptions="new int[] { 10, 25, 50, 100 }"
+                         FixedHeader="true"
+                         Height="65vh"
+                         RowsPerPage="10"
+                         Style="background-color:white;">
+
+                <ToolBarContent>
+                    <MudSpacer />
+                </ToolBarContent>
+                <Columns>
+                    <PropertyColumn Property="x => x.DateCreated.Date.ToShortDateString()" Title="Date Created" HeaderStyle="white-space:nowrap" />
+                    <PropertyColumn Property="x => x.CommentText" Title="Comment" />
+                    <TemplateColumn Title="From" HeaderStyle="white-space:nowrap">
+                        <CellTemplate Context="_context">
+                            <MudStack Row>
+                                <MudText>@_context.Item.Commenter.Name @_context.Item.Commenter.Surname</MudText>
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Has Been Viewed?">
+                        <CellTemplate Context="_context">
+                            <MudChip Color="@(_context.Item.IsViewed ? Color.Success : Color.Secondary)">
+                                @(_context.Item.IsViewed ? "Yes" : "No")
+                            </MudChip>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Is Issue">
+                        <CellTemplate Context="_context">
+                            <MudChip Color="@(_context.Item.IsIssue ? Color.Success : Color.Secondary)">
+                                @(_context.Item.IsIssue ? "Yes" : "No")
+                            </MudChip>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Has Been Resolved?">
+                        <CellTemplate Context="_context">
+                            <MudChip Color="@(_context.Item.IsResolved ? Color.Success : Color.Secondary)">
+                                @(_context.Item.IsResolved ? "Yes" : "No")
+                            </MudChip>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Actions">
+                        <CellTemplate Context="_context">
+                            <MudButton Color="Color.Primary" OnClick="async () => ResolveCommentModal(_context.Item.Id)">
+                                Mark as Resolved
+                            </MudButton>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+            </MudDataGrid>
+        </MudPaper>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Error">You are not authorized to view this page.</MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Parameter]
+    public int CampaignId { get; set; }
+    private int CommentId { get; set; }
+    private IEnumerable<Comment> Comments { get; set; } = new List<Comment>();
+    private IEnumerable<Comment> ListComments { get; set; } = new List<Comment>();
+    private CampaignRequest CampaignRequest { get; set; } = new CampaignRequest();
+    private int CampaignRequestId { get; set; }
+
+    private int NewCommentsCount { get; set; } = 0;
+    private Comment SelectedComment { get; set; } = new Comment();
+    private bool IsResolveDialogOpen { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using (var context = await DbContextFactory.CreateDbContextAsync())
+        {
+            Comments = await context.Comments
+              .Include(c => c.Commenter)
+              .Where(c => c.CampaignRequestId == CampaignId)
+              .AsNoTracking()
+              .OrderByDescending(c => c.DateCreated)
+              .ToListAsync();
+
+            var request = await context.CampaignRequests
+            .Where(x => x.Id == CampaignId)
+            .AsNoTracking()
+            .FirstOrDefaultAsync();
+
+            if(request != null)
+            {
+                CampaignRequest = request;
+            }
+            else
+            {
+                CampaignRequest = new();
+            }
+
+            NewCommentsCount = await context.Comments
+                .Where(c => c.CampaignRequestId == CampaignId && !c.IsViewed)
+                .CountAsync();
+
+            // TODO: mark all comments as viewed for this requester
+            // await context.Comments
+            //    .Where(c => c.CampaignRequestId == CampaignId && !c.IsViewed)
+            //    .ForEachAsync(c => c.IsViewed = true);
+            // await context.SaveChangesAsync();
+        }
+    }
+
+
+
+
+
+
+    private void ResolveCommentModal(int commentId)
+    {
+        CommentId = commentId;
+        var parameters = new DialogParameters
+        {
+            { "CommentId", CommentId } 
+        };
+        var options = new DialogOptions() { MaxWidth = MaxWidth.Medium };
+        DialogService.Show<ResolveCommentDialog>("Resolve Comment", parameters, options);
+    }
+}
+

@@ -1,0 +1,65 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using OCD.Data
+@using OCD.Models
+@inject IDbContextFactory<DataContext> DbContextFactory
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+<MudDialog>
+    <DialogContent>
+        <MudText>Has Issue been resolved?</MudText>
+        <MudRadioGroup @bind-Value="IsResolved">
+            <MudRadio Value="true">Yes</MudRadio>
+            <MudRadio Value="false">No</MudRadio>
+        </MudRadioGroup>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="ConfirmResolution">Submit</MudButton>
+
+    </DialogActions>
+</MudDialog>
+@code {
+    [Parameter]
+    public int CommentId { get; set; }
+    private bool IsResolved { get; set; }
+    [CascadingParameter]
+    private MudDialogInstance MudDialog { get; set; }
+    private Comment Comment = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using (var context = await DbContextFactory.CreateDbContextAsync())
+        {
+            var response = await context.Comments.FirstOrDefaultAsync(c => c.Id == CommentId);
+            if (response != null)
+            {
+                Comment = response;
+            }
+            
+        }
+    }
+
+    private async Task ConfirmResolution()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if(IsResolved == true)
+        {
+            // Update the comment to mark it as resolved
+            using(var context = await DbContextFactory.CreateDbContextAsync())
+            {
+                Comment.IsResolved = true;
+                
+                context.Comments.Update(Comment);
+                await context.SaveChangesAsync();
+            }
+            MudDialog.Close(DialogResult.Ok(true));
+            NavigationManager.NavigateTo("/requester-dashboard");
+            Snackbar.Add("Comment/Issue has been resolved", Severity.Success);
+        }
+        
+    }
+    private void Cancel() => MudDialog.Cancel();
+}

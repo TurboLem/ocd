@@ -1,0 +1,29 @@
+﻿@* @page "/"
+@using Microsoft.AspNetCore.Identity
+@using OCD.Data
+@inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@code {
+    private string userName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var identityUser = await UserManager.FindByNameAsync(user.Identity.Name);
+            userName = $"{identityUser.Name} {identityUser.Surname}";
+        }
+    }
+}
+
+@if (!string.IsNullOrEmpty(userName))
+{
+    <p>Welcome, @userName!</p>
+}
+else
+{
+    <p>Welcome to the application. Please log in to access your dashboard.</p>
+} *@

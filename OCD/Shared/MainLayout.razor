@@ -1,0 +1,46 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using OCD.Data
+@using OCD.Services
+@inherits LayoutComponentBase
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject IUserService UserService
+
+
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+<PageTitle>OCD</PageTitle>
+
+<MudLayout>
+<AuthorizeView>
+    <Authorized>
+        
+
+                    <NavMenu />
+
+                
+                <MudMainContent Class="mt-16 pa-4">
+                @Body
+                    </MudMainContent>
+
+    </Authorized>
+    <NotAuthorized>
+        <OCD.Components.RedirectToLogin />
+    </NotAuthorized>
+</AuthorizeView>
+</MudLayout>
+@code {
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+    //     var user = authState.User;
+
+    //     if (user.Identity?.IsAuthenticated == true)
+    //     {
+    //         await UserService.RedirectBasedOnUserRoleAsync(user.Identity.Name);
+    //     }
+    // }
+}

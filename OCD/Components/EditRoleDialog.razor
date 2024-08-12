@@ -1,0 +1,62 @@
+﻿@page "/role-edit-dialog"
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using OCD.Data
+@inject RoleManager<IdentityRole> RoleManager
+@inject UserManager<ApplicationUser> UserManager
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent><MudText Typo="Typo.h5"></MudText>Edit @User.Name @User.Surname's Role</TitleContent>
+    <DialogContent>
+        <MudText Typo="Typo.h6">Current Role: @SelectedRole</MudText>
+        <MudSelect T="string" Label="New Role" @bind-Value="SelectedRole">
+            @foreach (var role in Roles)
+            {
+                <MudSelectItem Value="@role">@role</MudSelectItem>
+            }
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Submit">Submit</MudButton>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public ApplicationUser User { get; set; } = default!;
+    private List<string> Roles { get; set; } = new();
+    private string SelectedRole { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Roles = await RoleManager.Roles.Select(r => r.Name).ToListAsync();
+        var userRoles = await UserManager.GetRolesAsync(User);
+        SelectedRole = userRoles.FirstOrDefault() ?? string.Empty;
+    }
+
+    private async Task Submit()
+    {
+        var currentRoles = await UserManager.GetRolesAsync(User);
+        var removeResult = await UserManager.RemoveFromRolesAsync(User, currentRoles);
+        if (!removeResult.Succeeded)
+        {
+            Snackbar.Add("Failed to remove user roles.", Severity.Error);
+            return;
+        }
+
+        var addResult = await UserManager.AddToRoleAsync(User, SelectedRole);
+        if (addResult.Succeeded)
+        {
+            Snackbar.Add($"{User.Name} {User.Surname}'s role has been updated to {SelectedRole}.", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        else
+        {
+            Snackbar.Add("Failed to update user role.", Severity.Error);
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

@@ -1,0 +1,31 @@
+﻿@page
+@model LoginModel
+@{
+    <div class="d-flex align-items-center justify-content-center min-vh-100">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-8 col-lg-6 col-xl-4">
+                    <div class="card shadow-2-strong" style="background-color:#f5f7fa; padding: 2rem 1rem;">
+                        <div class="card-body">
+                            <form id="account" method="post">
+                                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Input.Email" class="form-control form-control-sm" autocomplete="username" aria-required="true" placeholder="Email Address">
+                                    <label asp-for="Input.Email"></label>
+                                </div>
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Input.Password" class="form-control form-control-sm" autocomplete="password" aria-required="true" placeholder="Password">
+                                    <label asp-for="Input.Password"></label>
+                                </div>
+                                <div class="mb-3">
+                                    <button id="login-submit" type="submit" class="w-100 btn  btn-sm" style="background:#0e7490; color:white">Log in</button>
+                                </div>
+                                <div class="text-center">Don't have an account? <a href="/identity/account/register">Request access</a></div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}

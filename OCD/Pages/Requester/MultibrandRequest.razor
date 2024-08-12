@@ -1,0 +1,605 @@
+﻿@page "/add-campaign/multi-brand-request"
+@using Microsoft.EntityFrameworkCore
+@using OCD.DTOs
+@using OCD.Data
+@using OCD.Models
+@inject IDialogService DialogService
+@inject IDbContextFactory<DataContext> DbContextFactory
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ISnackbar Snackbar
+
+<AuthorizeView Roles="Requester">
+    <Authorized>
+        <MudCard Class="d-flex align-items-center justify-content-center min-vh-100">
+            <MudCardContent Class="container mt-5">
+                <MudExpansionPanels MultiExpansion="true" Outlined="true" Elevation="2">
+                    <MudForm @ref="form1">
+                        <MudExpansionPanel Text="Main Campaign Details" Expanded="true">
+                            <div class="mb-3">
+                                <MudTextField Label="SysAid Log" @bind-Value="parentCampaignRequest.SysAidLog" Required="true" RequiredError="Please enter a SysAid Log" Variant="Variant.Outlined" />
+                                <MudText>
+                                    No SysAid?
+                                    <MudLink Href="https://sysaidsvr1.isservices.co.za/servicePortal" Target="_blank" Class="text-blue-500 underline">
+                                        Click here
+                                    </MudLink>
+                                </MudText>
+                            </div>
+
+
+                            <div class="form-row">
+                                <div class="form-group col-md-4 align-content-center">
+                                    <MudRadioGroup @bind-Value="isSelectOwnBrand">
+                                        <MudText>I want to select a set number of brands</MudText>
+                                        <MudRadio Value="true">Yes</MudRadio>
+                                        <MudRadio Value="false">No</MudRadio>
+                                    </MudRadioGroup>
+                                </div>
+                                @if (isSelectOwnBrand)
+                                {
+                                    <div class="form-group col-md-4">
+
+                                        <MudSelect T="string" AnchorOrigin="Origin.BottomCenter" Label="Brand" @bind-SelectedValues="selectedBrands" Required="true"
+                                                   RequiredError="Please select a brand" Variant="Variant.Outlined"
+                                                   MultiSelection="true">
+                                            @foreach (var brand in brands)
+                                            {
+                                                <MudSelectItem Value="@brand.Name">@brand.Name</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </div>
+                                    <div class="form-group col-md-4">
+                                        <MudSelect AnchorOrigin="Origin.BottomCenter" T="string" Label="Broker Code" @bind-Value="parentCampaignRequest.CampaignBrokerCodes" Required="true" RequiredError="Please select a broker code" Variant="Variant.Outlined" MultiSelection="true">
+                                            @foreach (var brokerCode in brokerCodes)
+                                            {
+                                                <MudSelectItem Value="@brokerCode.Code">@brokerCode.Code</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="form-group col-md-4">
+
+                                        <MudSelect T="string" AnchorOrigin="Origin.BottomCenter" Label="Brand" @bind-Value="placeholder" Required="true" RequiredError="Please select a brand" Variant="Variant.Outlined">
+                                            @foreach (var brand in brands)
+                                            {
+                                                <MudSelectItem Value="@brand.Name">@brand.Name</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </div>
+                                    <div class="form-group col-md-4">
+                                        <MudSelect AnchorOrigin="Origin.BottomCenter" T="string" Label="Broker Code" @bind-Value="parentCampaignRequest.CampaignBrokerCodes" Required="true" RequiredError="Please select a broker code" Variant="Variant.Outlined">
+                                            @foreach (var brokerCode in brokerCodes)
+                                            {
+                                                <MudSelectItem Value="@brokerCode.Code">@brokerCode.Code</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </div>
+
+                                }
+                                <div class="form-group col-md-3">
+                                    <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Connex Dialler Campaign" @bind-Value="parentCampaignRequest.ConnexDiallerCampaignId"
+                                               Required="true" RequiredError="Please select a dialler campaign" Variant="Variant.Outlined"
+                                               SelectedValuesChanged="@(EventCallback.Factory.Create<IEnumerable<int>>(this, OnConnexDiallerCampaignChanged))">
+                                        @foreach (var campaign in connexDiallerCampaigns)
+                                        {
+                                            <MudSelectItem T="int" Value="campaign.Id">@campaign.Name</MudSelectItem>
+                                        }
+                                    </MudSelect>
+                                </div>
+                                <div class="form-group col-md-3">
+                                    <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Connex Dialler Source" @bind-Value="parentCampaignRequest.ConnexDiallerSourceId" Required="true" RequiredError="Please select a dialler source" Variant="Variant.Outlined">
+                                        @foreach (var source in connexDiallerSources)
+                                        {
+                                            <MudSelectItem T="int" Value="source.Id">@source.Name</MudSelectItem>
+                                        }
+                                    </MudSelect>
+                                </div>
+                                <div class="form-group col-md-3">
+                                    <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Publication" @bind-Value="parentCampaignRequest.PublicationId" Required="true" RequiredError="Please select a dialler source" Variant="Variant.Outlined">
+                                        @foreach (var publication in publications)
+                                        {
+                                            <MudSelectItem T="int" Value="publication.Id">@publication.Name</MudSelectItem>
+                                        }
+                                    </MudSelect>
+                                </div>
+                                <div class="form-group col-md-3">
+                                    <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Publication Owner" @bind-Value="parentCampaignRequest.PublicationOwnerId" Required="true" RequiredError="Please select a dialler source" Variant="Variant.Outlined">
+                                        @foreach (var publicationOwner in publicationOwners)
+                                        {
+                                            <MudSelectItem T="int" Value="publicationOwner.Id">@publicationOwner.Name</MudSelectItem>
+                                        }
+                                    </MudSelect>
+                                </div>
+                            </div>
+                            <MudTextField @bind-Value="parentCampaignRequest.Description" Label="Campaign Name" Required="true" RequiredError="Please fill in the name of your campaign" Variant="Variant.Outlined" />
+                        </MudExpansionPanel>
+                    </MudForm>
+                    @*  @if (placeholder.Equals("TELESURE MULTIBRAND"))
+                    {
+                    InitializeSubCampaignRequests(5);
+                    @for (int i = 0; i < 5; i++)
+                    {
+                    subCampaignRequests.Add(new CampaignRequestDTO());
+                    @if (i < subCampaignRequests.Count)
+                    {
+                    <MudForm>
+                    <MudExpansionPanel Text="@($"Sub Campaign {i}")">
+                    <MudTextField Label="Sub Campaign Name" @bind-Value="subCampaignRequests[i].Description" Required="true" RequiredError="Please fill in the name of your sub-campaign" Variant="Variant.Outlined" />
+                    <!-- Add other fields as needed -->
+                    </MudExpansionPanel>
+                    </MudForm>
+                    }
+                    }
+
+                    }
+                    else if(selectedBrands.Count() > 0)
+                    {
+                    InitializeSubCampaignRequests(selectedBrands.Count());
+                    @for (int i = 0; i < selectedBrands.Count(); i++)
+                    {
+                    subCampaignRequests.Add(new CampaignRequestDTO());
+
+
+                    <MudForm>
+                    <MudExpansionPanel Text="@($"Sub Campaign {i}")">
+                    <MudTextField Label="Sub Campaign Name" @bind-Value="subCampaignRequests[i].Description" Required="true" RequiredError="Please fill in the name of your sub-campaign" Variant="Variant.Outlined" />
+                    <!-- Add other fields as needed -->
+                    </MudExpansionPanel>
+                    </MudForm>
+
+                    }
+                    } *@
+                    @if (placeholder.Equals("TELESURE MULTIBRAND"))
+                    {
+                        // Initialize subCampaignRequests if it is null or not set properly
+                        if (subCampaignRequests == null || subCampaignRequests.Count != 5)
+                        {
+                            InitializeSubCampaignRequests(5);
+                        }
+
+                        @for (int i = 0; i < subCampaignRequests.Count; i++)
+                        {
+                            var request = GetRequestAt(i);
+
+                            if (request != null)
+                            {
+                                <MudForm>
+                                    <MudExpansionPanel Text="@($"Quote")">
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <MudSelect T="string" AnchorOrigin="Origin.BottomCenter" Label="Brand" @bind-Value="request.CampaignRequestBrands" Required="true" RequiredError="Please select a brand" Variant="Variant.Outlined">
+                                                    @foreach (var brand in brands)
+                                                    {
+                                                        <MudSelectItem Value="@brand.Name">@brand.Name</MudSelectItem>
+                                                    }
+                                                </MudSelect>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="string" Label="Broker Code" @bind-Value="request.CampaignBrokerCodes" Required="true" RequiredError="Please select a broker code" Variant="Variant.Outlined">
+                                                    @foreach (var brokerCode in brokerCodes)
+                                                    {
+                                                        <MudSelectItem Value="@brokerCode.Code">@brokerCode.Code</MudSelectItem>
+                                                    }
+                                                </MudSelect>
+                                            </div>
+                                            <div class="form-group col-md-3">
+                                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Connex Dialler Campaign" @bind-Value="request.ConnexDiallerCampaignId"
+                                                           Required="true" RequiredError="Please select a dialler campaign" Variant="Variant.Outlined"
+                                                           SelectedValuesChanged="@(EventCallback.Factory.Create<IEnumerable<int>>(this, OnConnexDiallerCampaignChanged))">
+                                                    @foreach (var campaign in connexDiallerCampaigns)
+                                                    {
+                                                        <MudSelectItem T="int" Value="campaign.Id">@campaign.Name</MudSelectItem>
+                                                    }
+                                                </MudSelect>
+                                            </div>
+                                            <div class="form-group col-md-3">
+                                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Connex Dialler Source" @bind-Value="request.ConnexDiallerSourceId" Required="true" RequiredError="Please select a dialler source" Variant="Variant.Outlined">
+                                                    @foreach (var source in connexDiallerSources)
+                                                    {
+                                                        <MudSelectItem T="int" Value="source.Id">@source.Name</MudSelectItem>
+                                                    }
+                                                </MudSelect>
+                                            </div>
+                                            <div class="form-group col-md-3">
+                                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Publication" @bind-Value="request.PublicationId" Required="true" RequiredError="Please select a dialler source" Variant="Variant.Outlined">
+                                                    @foreach (var publication in publications)
+                                                    {
+                                                        <MudSelectItem T="int" Value="publication.Id">@publication.Name</MudSelectItem>
+                                                    }
+                                                </MudSelect>
+                                            </div>
+                                            <div class="form-group col-md-3">
+                                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Publication Owner" @bind-Value="request.PublicationOwnerId" Required="true" RequiredError="Please select a dialler source" Variant="Variant.Outlined">
+                                                    @foreach (var publicationOwner in publicationOwners)
+                                                    {
+                                                        <MudSelectItem T="int" Value="publicationOwner.Id">@publicationOwner.Name</MudSelectItem>
+                                                    }
+                                                </MudSelect>
+                                            </div>
+                                        </div>
+                                        <MudTextField Label="Campaign Name" @bind-Value="request.Description" Required="true" RequiredError="Please fill in the name of your sub-campaign" Variant="Variant.Outlined" />
+                                    </MudExpansionPanel>
+                                </MudForm>
+                            }
+                        }
+                    }
+                    else if (selectedBrands != null && selectedBrands.Count() > 0)
+                    {
+                        // Initialize subCampaignRequests based on selectedBrands count
+                        if (subCampaignRequests == null || subCampaignRequests.Count != selectedBrands.Count())
+                        {
+                            InitializeSubCampaignRequests(selectedBrands.Count());
+                        }
+
+                        @for (int i = 0; i < subCampaignRequests.Count; i++)
+                        {
+                            var request = GetRequestAt(i);
+
+                            if (request != null)
+                            {
+                                <MudForm>
+                                    <MudExpansionPanel Text="@($"Quote")">
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <MudSelect T="string" AnchorOrigin="Origin.BottomCenter" Label="Brand" @bind-Value="request.CampaignRequestBrands" Required="true" RequiredError="Please select a brand" Variant="Variant.Outlined">
+                                                    @foreach (var brand in brands)
+                                                    {
+                                                        <MudSelectItem Value="@brand.Name">@brand.Name</MudSelectItem>
+                                                    }
+                                                </MudSelect>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="string" Label="Broker Code" @bind-Value="request.CampaignBrokerCodes" Required="true" RequiredError="Please select a broker code" Variant="Variant.Outlined">
+                                                    @foreach (var brokerCode in brokerCodes)
+                                                    {
+                                                        <MudSelectItem Value="@brokerCode.Code">@brokerCode.Code</MudSelectItem>
+                                                    }
+                                                </MudSelect>
+                                            </div>
+                                            <div class="form-group col-md-3">
+                                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Connex Dialler Campaign" @bind-Value="request.ConnexDiallerCampaignId"
+                                                           Required="true" RequiredError="Please select a dialler campaign" Variant="Variant.Outlined"
+                                                           SelectedValuesChanged="@(EventCallback.Factory.Create<IEnumerable<int>>(this, OnConnexDiallerCampaignChanged))">
+                                                    @foreach (var campaign in connexDiallerCampaigns)
+                                                    {
+                                                        <MudSelectItem T="int" Value="campaign.Id">@campaign.Name</MudSelectItem>
+                                                    }
+                                                </MudSelect>
+                                            </div>
+                                            <div class="form-group col-md-3">
+                                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Connex Dialler Source" @bind-Value="request.ConnexDiallerSourceId" Required="true" RequiredError="Please select a dialler source" Variant="Variant.Outlined">
+                                                    @foreach (var source in connexDiallerSources)
+                                                    {
+                                                        <MudSelectItem T="int" Value="source.Id">@source.Name</MudSelectItem>
+                                                    }
+                                                </MudSelect>
+                                            </div>
+                                            <div class="form-group col-md-3">
+                                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Publication" @bind-Value="request.PublicationId" Required="true" RequiredError="Please select a dialler source" Variant="Variant.Outlined">
+                                                    @foreach (var publication in publications)
+                                                    {
+                                                        <MudSelectItem T="int" Value="publication.Id">@publication.Name</MudSelectItem>
+                                                    }
+                                                </MudSelect>
+                                            </div>
+                                            <div class="form-group col-md-3">
+                                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Publication Owner" @bind-Value="request.PublicationOwnerId" Required="true" RequiredError="Please select a dialler source" Variant="Variant.Outlined">
+                                                    @foreach (var publicationOwner in publicationOwners)
+                                                    {
+                                                        <MudSelectItem T="int" Value="publicationOwner.Id">@publicationOwner.Name</MudSelectItem>
+                                                    }
+                                                </MudSelect>
+                                            </div>
+                                        </div>
+                                        <MudTextField Label="Campaign Name" @bind-Value="request.Description" Required="true" RequiredError="Please fill in the name of your sub-campaign" Variant="Variant.Outlined" />
+                                    </MudExpansionPanel>
+                                </MudForm>
+                            }
+                        }
+                    }
+                    <MudExpansionPanel Text="Business Unit, Channel and Source Details">
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Communication Type" @bind-Value="parentCampaignRequest.CommunicationTypeId" Required="true" RequiredError="Please select a communication type" Variant="Variant.Outlined">
+                                    @foreach (var communicationType in communicationTypes)
+                                    {
+                                        <MudSelectItem Value="@communicationType.Id">@communicationType.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Business Unit" @bind-Value="parentCampaignRequest.BusinessUnitId" Required="true" RequiredError="Please select a channel" Variant="Variant.Outlined">
+                                    @foreach (var businessUnit in businessUnits)
+                                    {
+                                        <MudSelectItem Value="@businessUnit.Id">@businessUnit.UnitName</MudSelectItem>
+                                    }
+                                </MudSelect>
+
+                            </div>
+                            <div class="form-group col-md-4">
+                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Channel" @bind-Value="parentCampaignRequest.ChannelId" Required="true" RequiredError="Please select a channel" Variant="Variant.Outlined">
+                                    @foreach (var channel in channels)
+                                    {
+                                        <MudSelectItem Value="@channel.Id">@channel.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+
+                            </div>
+                            <div class="form-group col-md-6">
+                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Source" @bind-Value="parentCampaignRequest.SourceId" Required="true" RequiredError="Please select a source" Variant="Variant.Outlined">
+                                    @foreach (var source in sources)
+                                    {
+                                        <MudSelectItem Value="@source.Id">@source.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Source Break" @bind-Value="parentCampaignRequest.SourceBreakId" Required="true" RequiredError="Please select a source break" Variant="Variant.Outlined">
+                                    @foreach (var sourceBreak in sourceBreaks)
+                                    {
+                                        <MudSelectItem Value="@sourceBreak.Id">@sourceBreak.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </div>
+                        </div>
+                    </MudExpansionPanel>
+                    <MudExpansionPanel Text="Media, Slot and Date Details">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Campaign Type" @bind-Value="parentCampaignRequest.CampaignId" Required="true" RequiredError="Please select a campaign type" Variant="Variant.Outlined">
+                                    @foreach (var campaign in campaigns)
+                                    {
+                                        <MudSelectItem Value="@campaign.Id">@campaign.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Media" @bind-Value="parentCampaignRequest.MediaId" Required="true" RequiredError="Please select a media type" Variant="Variant.Outlined">
+                                    @foreach (var media in mediaTypes)
+                                    {
+                                        <MudSelectItem Value="@media.Id">@media.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </div>
+
+                            <div class="form-group col-md-6">
+                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Slot" @bind-Value="parentCampaignRequest.SlotId" Required="true" RequiredError="Please select a slot" Variant="Variant.Outlined">
+                                    @foreach (var slot in slots)
+                                    {
+                                        <MudSelectItem Value="@slot.Id">@slot.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <MudItem>
+                                    <MudDateRangePicker PickerVariant="PickerVariant.Dialog" Variant="Variant.Outlined" Label="Select Date Range" @bind-DateRange="DateRangeCR" InputClass="w-full rounded-md border-gray-200 bg-gray-50 border-2" Required="true" />
+                                </MudItem>
+                            </div>
+                        </div>
+                    </MudExpansionPanel>
+                </MudExpansionPanels>
+                <MudCardActions Class="justify-content-center">
+
+                    <MudButton Color="Color.Warning" Variant="Variant.Filled" OnClick="OnSubmit">Request Campaign</MudButton>
+
+                </MudCardActions>
+            </MudCardContent>
+        </MudCard>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Error">You are not authorized to view this page.</MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private bool isSelectOwnBrand = true;
+    private bool isMultiSelect = true; // Default to true
+    private MudForm form1;
+    private CampaignRequestDTO parentCampaignRequest = new();
+    private List<CampaignRequestDTO> subCampaignRequests { get; set; } = new List<CampaignRequestDTO>();
+    private IEnumerable<string> selectedBrands { get; set; } = new HashSet<string>();
+    private List<string> brandsSelectList = new List<string>();
+    private string placeholder = "";
+    private string selectedBrokerCode;
+    private List<Campaign> campaigns = new();
+    private List<PackType> packTypes = new();
+    private List<Channel> channels = new();
+    private List<Brand> brands = new();
+    private List<Media> mediaTypes = new();
+    private List<Slot> slots = new();
+    private List<Source> sources = new();
+    private List<BusinessUnit> businessUnits = new();
+    private List<SourceBreak> sourceBreaks = new();
+    private List<Publication> publications = new();
+    private List<PublicationOwner> publicationOwners = new();
+    private ApplicationUser Requester { get; set; }
+    private List<CommunicationType> communicationTypes = new();
+    private List<ConnexDiallerCampaign> connexDiallerCampaigns = new();
+    private List<ConnexDiallerSource> connexDiallerSources = new();
+    private List<BrokerCode> brokerCodes = new();
+    private DateRange _dateRangeCR;
+    private DateRange DateRangeCR
+    {
+        get => _dateRangeCR;
+        set
+        {
+            if (_dateRangeCR != value)
+            {
+                _dateRangeCR = value;
+                parentCampaignRequest.StartDate = value.Start;
+                parentCampaignRequest.EndDate = value.End;
+            }
+        }
+    }
+
+    private CampaignRequestDTO GetRequestAt(int index)
+    {
+        if (subCampaignRequests != null && index >= 0 && index < subCampaignRequests.Count)
+        {
+            return subCampaignRequests[index];
+        }
+        return null;
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        using (var context = DbContextFactory.CreateDbContext())
+        {
+            campaigns = await context.Campaigns.AsNoTracking().ToListAsync();
+            packTypes = await context.PackTypes.AsNoTracking().ToListAsync();
+            channels = await context.Channels.AsNoTracking().ToListAsync();
+            brands = await context.Brands.AsNoTracking().ToListAsync();
+            mediaTypes = await context.Media.AsNoTracking().ToListAsync();
+            slots = await context.Slots.AsNoTracking().ToListAsync();
+            sources = await context.Sources.AsNoTracking().ToListAsync();
+            businessUnits = await context.BusinessUnits.AsNoTracking().ToListAsync();
+            sourceBreaks = await context.SourceBreaks.AsNoTracking().ToListAsync();
+            publications = await context.Publications.AsNoTracking().ToListAsync();
+            publicationOwners = await context.PublicationOwners.AsNoTracking().ToListAsync();
+            communicationTypes = await context.CommunicationTypes.AsNoTracking().ToListAsync();
+            connexDiallerCampaigns = await context.ConnexDiallerCampaigns.AsNoTracking().ToListAsync();
+            brokerCodes = await context.BrokerCodes.AsNoTracking().ToListAsync();
+            Requester = await context.Users.FirstOrDefaultAsync(x => x.Email == user.Identity!.Name) ?? new();
+        }
+        DateRangeCR = new DateRange(parentCampaignRequest.StartDate, parentCampaignRequest.EndDate);
+    }
+
+    private async Task OnSubmit()
+    {
+        if (form1.IsValid)
+        {
+            using (var context = DbContextFactory.CreateDbContext())
+            {
+                var mainCampaignRequest = new CampaignRequest
+                    {
+                        SysAidLog = parentCampaignRequest.SysAidLog,
+                        Description = parentCampaignRequest.Description,
+                        CampaignId = parentCampaignRequest.CampaignId,
+                        CommunicationTypeId = parentCampaignRequest.CommunicationTypeId,
+                        BusinessUnitId = parentCampaignRequest.BusinessUnitId,
+                        // CampaignRequestBrands = string.Join(",", selectedBrands),
+                        CampaignRequestBrands = (selectedBrands is not null && selectedBrands.Any())
+            ? string.Join(",", selectedBrands)
+            : placeholder,
+                        SmsNumber = null,
+                        SharecallNumber = null,
+                        ChannelId = parentCampaignRequest.ChannelId,
+                        SourceId = parentCampaignRequest.SourceId,
+                        SourceBreakId = parentCampaignRequest.SourceBreakId,
+                        ConnexDiallerCampaignId = parentCampaignRequest.ConnexDiallerCampaignId,
+                        ConnexDiallerSourceId = parentCampaignRequest.ConnexDiallerSourceId,
+                        SlotId = parentCampaignRequest.SlotId,
+                        MediaId = parentCampaignRequest.MediaId,
+                        PublicationOwnerId = parentCampaignRequest.PublicationOwnerId,
+                        PublicationId = parentCampaignRequest.PublicationId,
+                        CampaignBrokerCodes = parentCampaignRequest.CampaignBrokerCodes,
+                        StartDate = parentCampaignRequest.StartDate,
+                        EndDate = parentCampaignRequest.EndDate,
+                        IsActive = false,
+                        IsPending = false,
+                        TrackingCode = null,
+                        CampaignRequestMainId = null,
+                        PackTypeId = null,
+                        RequesterId = Requester.Id, // Get the current logged user's id and add it here
+                        ActionedBy = null,
+                        ActionedDate = null,
+                        RequestedDate = DateTime.Now,
+                    };
+                context.CampaignRequests.Add(mainCampaignRequest);
+                await context.SaveChangesAsync();
+
+
+                foreach (var subCampaignRequest in subCampaignRequests)
+                {
+                    var subCampaign = new CampaignRequest
+                        {
+                            SysAidLog = parentCampaignRequest.SysAidLog,
+                            Description = subCampaignRequest.Description,
+                            SourceId = parentCampaignRequest.SourceId,
+                            CampaignId = parentCampaignRequest.CampaignId,
+                            CommunicationTypeId = parentCampaignRequest.CommunicationTypeId,
+                            BusinessUnitId = parentCampaignRequest.BusinessUnitId,
+                            CampaignRequestBrands = subCampaignRequest.CampaignRequestBrands,
+                            SmsNumber = null,
+                            SharecallNumber = null,
+                            ChannelId = parentCampaignRequest.ChannelId,
+                            SourceBreakId = parentCampaignRequest.SourceBreakId,
+                            ConnexDiallerCampaignId = subCampaignRequest.ConnexDiallerCampaignId,
+                            ConnexDiallerSourceId = subCampaignRequest.ConnexDiallerSourceId,
+                            SlotId = parentCampaignRequest.SlotId,
+                            MediaId = parentCampaignRequest.MediaId,
+                            PublicationOwnerId = subCampaignRequest.PublicationOwnerId,
+                            PublicationId = subCampaignRequest.PublicationId,
+                            TrackingCode = null,
+                            CampaignBrokerCodes = subCampaignRequest.CampaignBrokerCodes,
+                            StartDate = parentCampaignRequest.StartDate,
+                            EndDate = parentCampaignRequest.EndDate,
+                            IsActive = false,
+                            IsPending = false,
+                            CampaignRequestMainId = mainCampaignRequest.Id,
+                            PackTypeId = null,
+                            RequesterId = Requester.Id,
+                            ActionedBy = null,
+                            ActionedDate = null,
+                            RequestedDate = mainCampaignRequest.RequestedDate,
+
+                        };
+                    context.CampaignRequests.Add(subCampaign);
+                }
+                await context.SaveChangesAsync();
+                Snackbar.Add("Sub Campaign Requests created successfully!", Severity.Success);
+                subCampaignRequests.Clear();
+                parentCampaignRequest = new();
+            }
+        }
+        else
+        {
+            Snackbar.Add("Please fill in all required fields.", Severity.Error);
+        }
+    }
+    private async Task OnConnexDiallerCampaignChanged(IEnumerable<int> selectedValues)
+    {
+        var selectedDiallerCampaignId = selectedValues.FirstOrDefault();
+        using var context = DbContextFactory.CreateDbContext();
+        connexDiallerSources = await context.ConnexDiallerSources
+            .Where(x => x.ConnexDiallerCampaignId == selectedDiallerCampaignId)
+            .AsNoTracking()
+            .ToListAsync();
+
+        StateHasChanged();
+    }
+    private async Task OnBrandChangedSingleSelection(IEnumerable<string> selectedBrands)
+    {
+
+    }
+    private async Task OnBrandChanged(IEnumerable<string> selectedBrands)
+    {
+        var selectedBrandList = selectedBrands.ToList();
+
+        if (selectedBrandList.Contains("TELESURE MULTIBRAND"))
+        {
+            // isSelectOwnBrand = false;
+            InitializeSubCampaignRequests(5);
+        }
+        else
+        {
+            // isSelectOwnBrand = true;
+            InitializeSubCampaignRequests(selectedBrandList.Count);
+        }
+        Console.WriteLine($"Sub Campaign Requests Count: {subCampaignRequests.Count}");
+        StateHasChanged(); // Refresh the UI
+    }
+    private void InitializeSubCampaignRequests(int count)
+    {
+        subCampaignRequests.Clear();
+        for (int i = 0; i < count; i++)
+        {
+            subCampaignRequests.Add(new CampaignRequestDTO());
+        }
+        Console.WriteLine($"Initialized {count} Sub Campaign Requests");
+    }
+}

@@ -1,0 +1,102 @@
+﻿@page "/comments/{campaignId:int}"
+@using Microsoft.EntityFrameworkCore
+@using OCD.Data
+@using OCD.Models
+@inject NavigationManager NavigationManager
+@inject IDbContextFactory<DataContext> DbContextFactory
+<AuthorizeView Roles="Ops">
+    <Authorized>
+            <MudDataGrid Class="shadow-md rounded-lg border grid mt-7"
+                         Items="@Comments"
+                         HorizontalScrollbar="false"
+                         Hover="true"
+                         Striped="true"
+                         RowsPerPageOptions="new int[] { 10, 25, 50, 100 }"
+                         FixedHeader="true"
+                         Height="65vh"
+                         RowsPerPage="10"
+                         Style="background-color:white;">
+
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">Comments</MudText>
+                    <MudSpacer />
+                </ToolBarContent>
+                <Columns>
+                    <PropertyColumn Property="x => x.DateCreated.Date.ToShortDateString()" Title="Date Created" HeaderStyle="white-space:nowrap" />
+                    <PropertyColumn Property="x => x.CommentText" Title="Comment" />
+                    <TemplateColumn Title="Sent To" HeaderStyle="white-space:nowrap">
+                        <CellTemplate Context="_context">
+                            <MudStack Row>
+                                <MudText>@Requester.Name @Requester.Surname</MudText>
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Has Been Viewed?">
+                        <CellTemplate Context="_context">
+                            <MudChip Color="@(_context.Item.IsViewed ? Color.Success : Color.Secondary)">
+                                @(_context.Item.IsViewed ? "Yes" : "No")
+                            </MudChip>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Is Issue">
+                        <CellTemplate Context="_context">
+                            <MudChip Color="@(_context.Item.IsIssue ? Color.Success : Color.Secondary)">
+                                @(_context.Item.IsIssue ? "Yes" : "No")
+                            </MudChip>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Has Been Resolved?">
+                        <CellTemplate Context="_context">
+                            <MudChip Color="@(_context.Item.IsResolved ? Color.Success : Color.Secondary)">
+                                @(_context.Item.IsResolved ? "Yes" : "No")
+                            </MudChip>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+            </MudDataGrid>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Error">You are not authorized to view this page.</MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Parameter]
+    public int CampaignId { get; set; }
+    private IEnumerable<Comment> Comments { get; set; } = [];
+    private CampaignRequest CampaignRequest { get; set; } = new();
+    private ApplicationUser Requester { get; set; } = new();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        using (var context = await DbContextFactory.CreateDbContextAsync())
+        {
+            Comments = await context.Comments
+              .Include(c => c.Commenter)
+              .Where(c => c.CampaignRequestId == CampaignId)
+              .AsNoTracking()
+              .OrderByDescending(c => c.DateCreated)
+              .ToListAsync();
+
+            var requestFromDb = await context.CampaignRequests
+                .Where(x => x.Id == CampaignId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (requestFromDb is not null)
+            {
+                CampaignRequest = requestFromDb;
+            }
+            var requesterFromDb = await context.Users
+                .Where(x => x.Id == CampaignRequest.RequesterId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+           if(requesterFromDb is not null)
+            {
+                Requester = requesterFromDb;
+            }
+        }
+    }
+}

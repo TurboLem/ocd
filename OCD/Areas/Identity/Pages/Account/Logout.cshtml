@@ -1,0 +1,16 @@
+﻿@page
+@using Microsoft.AspNetCore.Identity
+@using OCD.Data
+@attribute [IgnoreAntiforgeryToken]
+@inject SignInManager<ApplicationUser> SignInManager
+@functions {
+    public async Task<IActionResult> OnGet()
+    {
+        if (SignInManager.IsSignedIn(User))
+        {
+            await SignInManager.SignOutAsync();
+        }
+
+        return Redirect("~/");
+    }
+}

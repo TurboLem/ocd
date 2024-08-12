@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  ocd:
+    image: ${DOCKER_REGISTRY-}ocd
+    build:
+      context: .
+      dockerfile: OCD/Dockerfile

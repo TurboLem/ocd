@@ -1,0 +1,212 @@
+﻿@page "/campaigns/multibrands"
+@using Microsoft.EntityFrameworkCore
+@using OCD.Data
+@using OCD.Models
+@using OCD.Services.CampaignRequestService
+@inherits OwningComponentBase<ICampaignRequestService>
+@inject IDbContextFactory<DataContext> DbContextFactory
+@inject IDialogService DialogService
+
+<AuthorizeView Roles="Ops">
+    <Authorized>
+            <div class="mb-3 d-flex align-items-center">
+                
+            </div>
+            <MudDataGrid Class="shadow-md rounded-lg border grid mt-7" Items="@Campaigns" HorizontalScrollbar="true" Hover="true" Striped="true" RowsPerPageOptions="new int[] { 10, 25, 50, 100 }" FixedHeader="true" Height="65vh" RowsPerPage="10" Style="background-color:white;">
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">Multibrand Campaigns</MudText>
+                    <MudSpacer />
+                    @* <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+                    AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField> *@
+                </ToolBarContent>
+                <Columns>
+                    <PropertyColumn Property="x => x.Id" Title="Campaign Id" HeaderStyle="white-space:nowrap" />
+                    <TemplateColumn Title="Owner" HeaderStyle="white-space:nowrap">
+                        <CellTemplate Context="_context">
+                            <MudStack Row>
+                            <MudText Style="font-size:14px">@Requester.Name @Requester.Surname</MudText>
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <PropertyColumn Property="x=>x.RequestedDate.Date.ToShortDateString()" Title="Date Requested" HeaderStyle="white-space:nowrap" />
+                    <PropertyColumn Property="x => x.Description" Title="Description" HeaderStyle="white-space:nowrap" />
+                    <PropertyColumn Property="x=> x.TrackingCode" Title="VDN/TC" HeaderStyle="white-space:nowrap" />
+                    <PropertyColumn Property="x=> x.Campaign.Name" Title="Campaign Type" HeaderStyle="white-space:nowrap" />
+                    <PropertyColumn Property="x=>x.BusinessUnit.UnitName" Title="Business Unit" HeaderStyle="white-space:nowrap" />
+                    <PropertyColumn Property="x => x.CampaignRequestBrands" Title="Brand" HeaderStyle="white-space:nowrap" />
+                    <PropertyColumn Property="x=> x.CampaignBrokerCodes" Title="Broker Code" HeaderStyle="white-space:nowrap" />
+                    <PropertyColumn Property="x=> x.ConnexDiallerCampaign.Name" Title="Dialler Campaign" HeaderStyle="white-space:nowrap" />
+                    <PropertyColumn Property="x=> x.ConnexDiallerSource.Name" Title="Dialler Source" HeaderStyle="white-space:nowrap" />
+                    <PropertyColumn Property="x=> x.CommunicationType.Name" Title="Telecom Type" HeaderStyle="white-space:nowrap" />
+                    <PropertyColumn Property="x=> x.SmsNumber" Title="SMS Number" HeaderStyle="white-space:nowrap" />
+                    <PropertyColumn Property="x=> x.SharecallNumber" Title="SCN Number" HeaderStyle="white-space:nowrap" />
+                    <PropertyColumn Property="x=> x.Media.Name" Title="Media" HeaderStyle="white-space:nowrap" />
+                    <PropertyColumn Property="x=> x.Slot.Name" Title="Slot" HeaderStyle="white-space:nowrap" />
+                    <PropertyColumn Property="x=> x.SourceBreak.Name" Title="Source Break" HeaderStyle="white-space:nowrap" />
+                    @* <PropertyColumn Property="x=> x.PackType.Type" Title="Pack" HeaderStyle="white-space:nowrap" /> *@
+                    <PropertyColumn Property="x=> x.Publication.Name" Title="Publication" HeaderStyle="white-space:nowrap" />
+                    <PropertyColumn Property="x=> x.PublicationOwner.Name" Title="Publication Owner" HeaderStyle="white-space:nowrap" />
+                    <PropertyColumn Property="x=> x.Channel.Name" Title="Channel" HeaderStyle="white-space:nowrap" />
+
+                    <PropertyColumn Property="x => x.StartDate!.Value.Date.ToShortDateString()" Title="Start Date" HeaderStyle="white-space:nowrap" />
+                    <PropertyColumn Property="x => x.EndDate!.Value.Date.ToShortDateString()" Title="End Date" HeaderStyle="white-space:nowrap" />
+
+                    <TemplateColumn CellClass=" justify-end" HeaderStyle="white-space:nowrap">
+                        <CellTemplate Context="_context">
+                            <MudStack Row>
+                                <MudButton StartIcon="@Icons.Material.Filled.Edit" Variant="@Variant.Filled" Color="Color.Primary" Size="@Size.Small" OnClick="@(() => EditCampaign(_context.Item))">Edit</MudButton>
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn CellClass=" justify-end" HeaderStyle="white-space:nowrap">
+                        <CellTemplate Context="_context">
+                            <MudStack Row>
+                                <MudButton StartIcon="@Icons.Material.Filled.AddComment" Variant="@Variant.Filled" Color="Color.Info" Size="@Size.Small" OnClick="() => OpenCommentModal(_context.Item.Id)">Add Comment</MudButton>
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager />
+                </PagerContent>
+            </MudDataGrid>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Error">You are not authorized to view this page.</MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private int activeIndex;
+    private string searchString = string.Empty;
+    private string selectedCampaignType = "All";
+    private CampaignRequest selectedCampaign = null;
+    private ApplicationUser Requester = new();
+    private string SysAidLog = string.Empty;
+    private string BusinessUnit = string.Empty;
+    private string CampaignType = string.Empty;
+    private string CampaignStatus = string.Empty;
+    private string Description = string.Empty;
+    private int CampaignRequestId;
+    private IEnumerable<ApplicationUser> Requesters { get; set; }
+    [Inject]
+    private NavigationManager NavigationManager { get; set; }
+    private IEnumerable<CampaignRequest> ListCampaigns { get; set; }
+    private IEnumerable<CampaignRequest> Campaigns { get; set; }
+    private IEnumerable<CampaignRequest> FilteredCampaigns
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(searchString))
+            {
+                return Campaigns;
+            }
+
+            var filtered = Campaigns.Where(c => c.Description.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+                                                c.TrackingCode.Contains(searchString, StringComparison.OrdinalIgnoreCase));
+
+            var mainIds = filtered.Select(c => c.Id).ToList();
+            var children = Campaigns.Where(c => mainIds.Contains(c.CampaignRequestMainId ?? 0));
+
+            return filtered.Concat(children).Distinct();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        using (var context = DbContextFactory.CreateDbContext())
+        {
+
+            ListCampaigns = await context.CampaignRequests
+           .Where(x => x.PackTypeId == 1)
+           .OrderByDescending(x => x.RequestedDate)
+           .ToListAsync();
+
+            var businessUnitIds = ListCampaigns.Select(c => c.BusinessUnitId).Distinct().ToList();
+            var businessUnits = await context.BusinessUnits.Where(b => businessUnitIds.Contains(b.Id)).AsNoTracking().ToListAsync();
+
+            var campaignIds = ListCampaigns.Select(c => c.CampaignId).Distinct().ToList();
+            var campaigns = await context.Campaigns.Where(c => campaignIds.Contains(c.Id)).AsNoTracking().ToListAsync();
+
+            var slotIds = ListCampaigns.Select(c => c.SlotId).Distinct().ToList();
+            var slots = await context.Slots.Where(s => slotIds.Contains(s.Id)).AsNoTracking().ToListAsync();
+
+            var mediaIds = ListCampaigns.Select(c => c.MediaId).Distinct().ToList();
+            var media = await context.Media.Where(m => mediaIds.Contains(m.Id)).AsNoTracking().ToListAsync();
+
+            var sourceBreakIds = ListCampaigns.Select(c => c.SourceBreakId).Distinct().ToList();
+            var sourceBreaks = await context.SourceBreaks.Where(sb => sourceBreakIds.Contains(sb.Id)).AsNoTracking().ToListAsync();
+
+            var sourceIds = ListCampaigns.Select(c => c.SourceId).Distinct().ToList();
+            var sources = await context.Sources.Where(s => sourceIds.Contains(s.Id)).AsNoTracking().ToListAsync();
+
+            var publicationIds = ListCampaigns.Select(c => c.PublicationId).Distinct().ToList();
+            var publications = await context.Publications.Where(p => publicationIds.Contains(p.Id)).AsNoTracking().ToListAsync();
+
+            var publicationOwnerIds = ListCampaigns.Select(c => c.PublicationOwnerId).Distinct().ToList();
+            var publicationOwners = await context.PublicationOwners.Where(po => publicationOwnerIds.Contains(po.Id)).AsNoTracking().ToListAsync();
+
+            var channelIds = ListCampaigns.Select(c => c.ChannelId).Distinct().ToList();
+            var channels = await context.Channels.Where(ch => channelIds.Contains(ch.Id)).AsNoTracking().ToListAsync();
+
+            var communicationTypeIds = ListCampaigns.Select(c => c.CommunicationTypeId).Distinct().ToList();
+            var communicationTypes = await context.CommunicationTypes.Where(ct => communicationTypeIds.Contains(ct.Id)).AsNoTracking().ToListAsync();
+
+            var connexDiallerCampaignIds = ListCampaigns.Select(c => c.ConnexDiallerCampaignId).Distinct().ToList();
+            var connexDiallerCampaigns = await context.ConnexDiallerCampaigns.Where(cdc => connexDiallerCampaignIds.Contains(cdc.Id)).AsNoTracking().ToListAsync();
+
+            var connexDiallerSourceIds = ListCampaigns.Select(c => c.ConnexDiallerSourceId).Distinct().ToList();
+            var connexDiallerSources = await context.ConnexDiallerSources.Where(cds => connexDiallerSourceIds.Contains(cds.Id)).AsNoTracking().ToListAsync();
+
+            var actionerIds = ListCampaigns.Select(c => c.ActionedBy).Distinct().ToList();
+            var actioners = await context.Users.Where(u => actionerIds.Contains(u.Id)).AsNoTracking().ToListAsync();
+
+            Requesters = await context.Users.AsNoTracking().ToListAsync();
+            foreach (var campaign in ListCampaigns)
+            {
+                Requester = Requesters.FirstOrDefault(x => x.Id == campaign.RequesterId) ?? new();
+                campaign.BusinessUnit = businessUnits.FirstOrDefault(b => b.Id == campaign.BusinessUnitId);
+                campaign.Campaign = campaigns.FirstOrDefault(c => c.Id == campaign.CampaignId);
+                campaign.Slot = slots.FirstOrDefault(s => s.Id == campaign.SlotId);
+                campaign.Media = media.FirstOrDefault(m => m.Id == campaign.MediaId);
+                campaign.Source = sources.FirstOrDefault(s => s.Id == campaign.SourceId);
+                campaign.SourceBreak = sourceBreaks.FirstOrDefault(sb => sb.Id == campaign.SourceBreakId);
+                campaign.Publication = publications.FirstOrDefault(p => p.Id == campaign.PublicationId);
+                campaign.PublicationOwner = publicationOwners.FirstOrDefault(po => po.Id == campaign.PublicationOwnerId);
+                campaign.Channel = channels.FirstOrDefault(ch => ch.Id == campaign.ChannelId);
+                campaign.CommunicationType = communicationTypes.FirstOrDefault(ct => ct.Id == campaign.CommunicationTypeId);
+                campaign.ConnexDiallerCampaign = connexDiallerCampaigns.FirstOrDefault(cdc => cdc.Id == campaign.ConnexDiallerCampaignId);
+                campaign.ConnexDiallerSource = connexDiallerSources.FirstOrDefault(cds => cds.Id == campaign.ConnexDiallerSourceId);
+                campaign.Actioner = actioners.FirstOrDefault(u => u.Id == campaign.ActionedBy);
+
+            }
+
+        }
+        Campaigns = ListCampaigns;
+
+    }
+    private void OpenCommentModal(int campaignRequestId)
+    {
+        CampaignRequestId = campaignRequestId;
+        var parameters = new DialogParameters
+     {
+         {"CampaignRequestId", campaignRequestId},
+          {"OnCommentAdded", EventCallback.Factory.Create(this, OnCommentAdded)}
+     };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, CloseButton = true };
+        DialogService.Show<Components.AddCommentModal>("Add Comment", parameters, options);
+    }
+    private async Task OnCommentAdded()
+    {
+        NavigationManager.NavigateTo("/ops-dashboard", true);
+    }
+    private void EditCampaign(CampaignRequest campaign)
+    {
+        selectedCampaign = campaign;
+        // Navigate to edit page or show modal
+        NavigationManager.NavigateTo($"/ops/campaigns/one-pack/edit/{campaign.Id}");
+    }
+}
+
+

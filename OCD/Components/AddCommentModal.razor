@@ -1,0 +1,71 @@
+﻿
+@using Microsoft.EntityFrameworkCore
+@using OCD.Data
+@using OCD.Models
+@inject IDbContextFactory<DataContext> DbContextFactory
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Value="CommentText" Label="Add your comment" Variant="Variant.Outlined" />
+        <MudRadioGroup @bind-Value="IsIssue">
+            <MudText>Is there a problem with the Campaign Request?</MudText>
+            <MudRadio Value="true">Yes</MudRadio>
+            <MudRadio Value="false">No</MudRadio>
+        </MudRadioGroup>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled"  OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="AddComment">Submit</MudButton>
+        
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter]
+    public int CampaignRequestId { get; set; }
+    [Parameter]
+    public bool IsIssue { get; set; }
+    [Parameter]
+    public EventCallback OnCommentAdded { get; set; }
+    [CascadingParameter]
+    private MudDialogInstance MudDialog { get; set; }
+    private string CommentText { get; set; }
+    private ApplicationUser LoggedInUser { get; set; }
+
+    private async Task AddComment()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        
+
+        using (var context = DbContextFactory.CreateDbContext()){
+
+            LoggedInUser = await context.Users.FirstOrDefaultAsync(u => u.Email == user.Identity.Name);
+
+            var comment = new Comment
+                {
+                    CampaignRequestId = CampaignRequestId,
+                    CommentText = CommentText,
+                    DateCreated = DateTime.Now,
+                    CommenterId = LoggedInUser.Id,
+                    IsIssue = IsIssue,
+                    IsResolved = false,
+                    IsViewed = false
+                };
+            context.Comments.Add(comment);
+            await context.SaveChangesAsync();
+        }
+        MudDialog.Close(DialogResult.Ok(true));
+        NavigationManager.NavigateTo("/ops-dashboard");
+        Snackbar.Add("Campaign request submitted", Severity.Success);
+       
+
+        if (OnCommentAdded.HasDelegate)
+        {
+            await OnCommentAdded.InvokeAsync();
+        }
+    }
+    private void Cancel() => MudDialog.Cancel();
+}
