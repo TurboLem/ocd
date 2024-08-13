@@ -25,11 +25,11 @@ variables:
   - template: pipeline-vars.yml
 
   - name: projectImage
-    value: "${{variables.teamName}}/${{variables.applicationName}}"
+    value: '${{variables.teamName}}/${{variables.applicationName}}'
   - name: DeployPool
-    value: "Container Agents"
+    value: 'Container Agents'
   - name: ACR_Service_Principal
-    value: "Azure DevOps Pipeline Service"
+    value: 'Azure DevOps Pipeline Service'
   - name: K8s-ServiceConnection-Dev
     value: Kubernetes_OnPrem_Dev_KubeConfig
   - name: K8s-ServiceConnection-SIT
@@ -39,7 +39,7 @@ variables:
   - name: K8s-ServiceConnection-Prod
     value: Kubernetes_OnPrem_Prod_KubeConfig
   - name: KongEnabled
-    value: "true"
+    value: true
 
 pool: "TIH Hosted"
 
