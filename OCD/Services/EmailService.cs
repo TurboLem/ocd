@@ -25,15 +25,19 @@ namespace OCD.Services
 
         public async Task SendTestEmail(string subject,string messageBody)
         {
-            var smtpClient = new SmtpClient(_configuration["Smtp:Host"])
+            var smtpHost =  _configuration["Smtp:Host"];
+            var smtpUsername = _configuration["GMAIL_SMTP_USER"] ?? _configuration["Smtp:Username"];
+            var smtpPassword = _configuration["GMAIL_SMTP_PASS"] ?? _configuration["Smtp:Password"];
+
+            var smtpClient = new SmtpClient(smtpHost)
             {
                 Port = int.Parse(_configuration["Smtp:Port"]),
-                Credentials = new NetworkCredential(_configuration["Smtp:Username"], _configuration["Smtp:Password"]),
+                Credentials = new NetworkCredential(smtpUsername, smtpPassword),
                 EnableSsl = true,
             };
             var message = new MailMessage
             {
-                From = new MailAddress(_configuration["Smtp:From"]),
+                From = new MailAddress(smtpUsername ?? _configuration["Smtp:From"]),
                 Subject = subject,
                 Body = messageBody,
                 IsBodyHtml = true,
