@@ -39,7 +39,7 @@
     <MudNavMenu Margin="Margin.Dense" Rounded="true" Class="pa-2">
         <AuthorizeView Roles="Requester">
             <Authorized>
-                <MudNavLink Href="/requester-dashboard" Icon="@Icons.Material.Filled.Home">Home </MudNavLink>
+                <MudNavLink Href="/requester-dashboard" Icon="@Icons.Material.Filled.Home">Dashboard</MudNavLink>
                 <MudNavLink Href="/add-campaign/one-pack-request">One-Pack Request</MudNavLink>
                 <MudNavLink Href="/add-campaign/three-pack-request">Three-Pack Request</MudNavLink>
                 <MudNavLink Href="/add-campaign/multi-brand-request">Multi-Brand Request</MudNavLink>
@@ -49,7 +49,7 @@
 
         <AuthorizeView Roles="Ops">
             <Authorized>
-                <MudNavLink Href="/ops-dashboard" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+                <MudNavLink Href="/ops-dashboard" Icon="@Icons.Material.Filled.Home">Dashboard</MudNavLink>
                 <MudNavLink Href="/campaigns/one-pack">One-Pack Campaigns</MudNavLink>
                 <MudNavLink Href="/campaigns/three-pack">Three-Pack Campaigns</MudNavLink>
                 <MudNavLink Href="/campaigns/multibrands">Multi-Brand Campaigns</MudNavLink>
@@ -60,9 +60,14 @@
 
         <AuthorizeView Roles="Superuser">
             <Authorized>
-                <MudNavLink Href="/manager-dashboard" Icon="@Icons.Material.Filled.Home">Manager Dashboard</MudNavLink>
+                <MudNavLink Href="/manager-dashboard" Icon="@Icons.Material.Filled.Home">Dashboard</MudNavLink>
                 <MudNavLink Href="/user-management">User Management</MudNavLink>
 
+            </Authorized>
+        </AuthorizeView>
+        <AuthorizeView Roles="Viewer">
+            <Authorized>
+                <MudNavLink Href="/viewer-dashboard" Icon="@Icons.Material.Filled.Home">Dashboard</MudNavLink>
             </Authorized>
         </AuthorizeView>
     </MudNavMenu>
