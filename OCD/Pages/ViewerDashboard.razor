@@ -2,6 +2,8 @@
 @using Microsoft.EntityFrameworkCore
 @using OCD.Data
 @using OCD.Models
+@using OCD.Services.CampaignRequestService
+@inherits OwningComponentBase<ICampaignRequestService>
 @inject IDbContextFactory<DataContext> DbContextFactory
 <AuthorizeView Roles="Viewer">
     <Authorized>
@@ -19,13 +21,7 @@
 
 
                     <div class="mb-3 d-flex align-items-center">
-                        <MudTextField @bind-Value="searchString" Placeholder="" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="mr-3" Style="width: 300px;" />
-                        <MudSelect @bind-Value="selectedCampaignType" Label="All campaign types" T="string" Style="width: 100px;">
-                            <MudSelectItem Value="@("All")">All</MudSelectItem>
-                            <MudSelectItem Value="@("Active")">Active</MudSelectItem>
-                            <MudSelectItem Value="@("Inactive")">Inactive</MudSelectItem>
-                            <MudSelectItem Value="@("Completed")">Completed</MudSelectItem>
-                        </MudSelect>
+                       
                     </div>
                     <MudDataGrid Class="shadow-md rounded-lg border grid mt-7" Items="@Campaigns" HorizontalScrollbar="true" Hover="true" Striped="true" RowsPerPageOptions="new int[] { 10, 25, 50, 100 }" FixedHeader="true" Height="65vh" RowsPerPage="10" Style="background-color:white;">
                         @* <ToolBarContent>
@@ -39,7 +35,7 @@
                             <TemplateColumn Title="Owner" HeaderStyle="white-space:nowrap">
                                 <CellTemplate Context="_context">
                                     <MudStack Row>
-                                    <MudText Style="font-size:14px">@Requester.Name @Requester.Surname</MudText>
+                                    <MudText Style="font-size:14px">@_context.Item.Requester.Name @_context.Item.Requester.Surname</MudText>
                                     </MudStack>
                                 </CellTemplate>
                             </TemplateColumn>
@@ -74,13 +70,7 @@
                 </MudTabPanel>
                 <MudTabPanel Text="Active Campaigns">
                     <div class="mb-3 d-flex align-items-center">
-                        <MudTextField @bind-Value="searchString" Placeholder="Search by description..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="mr-3" Style="width: 300px;" />
-                        <MudSelect @bind-Value="selectedCampaignType" Label="All campaign types" T="string" Style="width: 100px;">
-                            <MudSelectItem Value="@("All")">All</MudSelectItem>
-                            <MudSelectItem Value="@("Active")">Active</MudSelectItem>
-                            <MudSelectItem Value="@("Inactive")">Inactive</MudSelectItem>
-                            <MudSelectItem Value="@("Completed")">Completed</MudSelectItem>
-                        </MudSelect>
+                        
                     </div>
                     <MudDataGrid Class="shadow-md rounded-lg border grid mt-7" Items="@ActiveCampaigns" HorizontalScrollbar="true" Hover="true" Striped="true" RowsPerPageOptions="new int[] { 10, 25, 50, 100 }" FixedHeader="true" Height="65vh" RowsPerPage="10" Style="background-color:white;">
                         <Columns>
@@ -88,7 +78,7 @@
                             <TemplateColumn Title="Owner" HeaderStyle="white-space:nowrap">
                                 <CellTemplate Context="_context">
                                     <MudStack Row>
-                                    <MudText Style="font-size:14px">@Requester.Name @Requester.Surname</MudText>
+                                    <MudText Style="font-size:14px">@_context.Item.Requester.Name @_context.Item.Requester.Surname</MudText>
                                     </MudStack>
                                 </CellTemplate>
                             </TemplateColumn>
@@ -122,13 +112,7 @@
                 </MudTabPanel>
                 <MudTabPanel Text="Inactive Campaigns">
                     <div class="mb-3 d-flex align-items-center">
-                        <MudTextField @bind-Value="searchString" Placeholder="Search by description..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="mr-3" Style="width: 300px;" />
-                        <MudSelect @bind-Value="selectedCampaignType" Label="All campaign types" T="string" Style="width: 100px;">
-                            <MudSelectItem Value="@("All")">All</MudSelectItem>
-                            <MudSelectItem Value="@("Active")">Active</MudSelectItem>
-                            <MudSelectItem Value="@("Inactive")">Inactive</MudSelectItem>
-                            <MudSelectItem Value="@("Completed")">Completed</MudSelectItem>
-                        </MudSelect>
+                        
                     </div>
                     <MudDataGrid Class="shadow-md rounded-lg border grid mt-7" Items="@InActiveCampaigns" HorizontalScrollbar="true" Hover="true" Striped="true" RowsPerPageOptions="new int[] { 10, 25, 50, 100 }" FixedHeader="true" Height="65vh" RowsPerPage="10" Style="background-color:white;">
                         <Columns>
@@ -136,7 +120,7 @@
                             <TemplateColumn Title="Owner" HeaderStyle="white-space:nowrap">
                                 <CellTemplate Context="_context">
                                     <MudStack Row>
-                                    <MudText Style="font-size:14px">@Requester.Name @Requester.Surname</MudText>
+                                    <MudText Style="font-size:14px">@_context.Item.Requester.Name @_context.Item.Requester.Surname</MudText>
                                     </MudStack>
                                 </CellTemplate>
                             </TemplateColumn>
@@ -170,13 +154,7 @@
                 </MudTabPanel>
                 <MudTabPanel Text="Pending Campaigns">
                     <div class="mb-3 d-flex align-items-center">
-                        <MudTextField @bind-Value="searchString" Placeholder="Search by description..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="mr-3" Style="width: 300px;" />
-                        <MudSelect @bind-Value="selectedCampaignType" Label="All campaign types" T="string" Style="width: 100px;">
-                            <MudSelectItem Value="@("All")">All</MudSelectItem>
-                            <MudSelectItem Value="@("Active")">Active</MudSelectItem>
-                            <MudSelectItem Value="@("Inactive")">Inactive</MudSelectItem>
-                            <MudSelectItem Value="@("Completed")">Completed</MudSelectItem>
-                        </MudSelect>
+                        
                     </div>
                     <MudDataGrid Class="shadow-md rounded-lg border grid mt-7" Items="@PendingCampaigns" HorizontalScrollbar="true" Hover="true" Striped="true" RowsPerPageOptions="new int[] { 10, 25, 50, 100 }" FixedHeader="true" Height="65vh" RowsPerPage="10" Style="background-color:white;">
                         <Columns>
@@ -184,7 +162,7 @@
                             <TemplateColumn Title="Owner" HeaderStyle="white-space:nowrap">
                                 <CellTemplate Context="_context">
                                     <MudStack Row>
-                                    <MudText Style="font-size:14px">@Requester.Name @Requester.Surname</MudText>
+                                    <MudText Style="font-size:14px">@_context.Item.Requester.Name @_context.Item.Requester.Surname</MudText>
                                     </MudStack>
                                 </CellTemplate>
                             </TemplateColumn>
@@ -244,74 +222,9 @@
     protected override async Task OnInitializedAsync()
     {
 
-        using (var context = DbContextFactory.CreateDbContext())
-        {
+        var response = await Service.GetCampaignRequestsAsync();
+        ListCampaigns = response.CampaignRequests!;
 
-            ListCampaigns = await context.CampaignRequests
-           .Where(x => x.PackTypeId == 1)
-           .OrderByDescending(x => x.RequestedDate)
-           .ToListAsync();
-
-            var businessUnitIds = ListCampaigns.Select(c => c.BusinessUnitId).Distinct().ToList();
-            var businessUnits = await context.BusinessUnits.Where(b => businessUnitIds.Contains(b.Id)).AsNoTracking().ToListAsync();
-
-            var campaignIds = ListCampaigns.Select(c => c.CampaignId).Distinct().ToList();
-            var campaigns = await context.Campaigns.Where(c => campaignIds.Contains(c.Id)).AsNoTracking().ToListAsync();
-
-            var slotIds = ListCampaigns.Select(c => c.SlotId).Distinct().ToList();
-            var slots = await context.Slots.Where(s => slotIds.Contains(s.Id)).AsNoTracking().ToListAsync();
-
-            var mediaIds = ListCampaigns.Select(c => c.MediaId).Distinct().ToList();
-            var media = await context.Media.Where(m => mediaIds.Contains(m.Id)).AsNoTracking().ToListAsync();
-
-            var sourceBreakIds = ListCampaigns.Select(c => c.SourceBreakId).Distinct().ToList();
-            var sourceBreaks = await context.SourceBreaks.Where(sb => sourceBreakIds.Contains(sb.Id)).AsNoTracking().ToListAsync();
-
-            var sourceIds = ListCampaigns.Select(c => c.SourceId).Distinct().ToList();
-            var sources = await context.Sources.Where(s => sourceIds.Contains(s.Id)).AsNoTracking().ToListAsync();
-
-            var publicationIds = ListCampaigns.Select(c => c.PublicationId).Distinct().ToList();
-            var publications = await context.Publications.Where(p => publicationIds.Contains(p.Id)).AsNoTracking().ToListAsync();
-
-            var publicationOwnerIds = ListCampaigns.Select(c => c.PublicationOwnerId).Distinct().ToList();
-            var publicationOwners = await context.PublicationOwners.Where(po => publicationOwnerIds.Contains(po.Id)).AsNoTracking().ToListAsync();
-
-            var channelIds = ListCampaigns.Select(c => c.ChannelId).Distinct().ToList();
-            var channels = await context.Channels.Where(ch => channelIds.Contains(ch.Id)).AsNoTracking().ToListAsync();
-
-            var communicationTypeIds = ListCampaigns.Select(c => c.CommunicationTypeId).Distinct().ToList();
-            var communicationTypes = await context.CommunicationTypes.Where(ct => communicationTypeIds.Contains(ct.Id)).AsNoTracking().ToListAsync();
-
-            var connexDiallerCampaignIds = ListCampaigns.Select(c => c.ConnexDiallerCampaignId).Distinct().ToList();
-            var connexDiallerCampaigns = await context.ConnexDiallerCampaigns.Where(cdc => connexDiallerCampaignIds.Contains(cdc.Id)).AsNoTracking().ToListAsync();
-
-            var connexDiallerSourceIds = ListCampaigns.Select(c => c.ConnexDiallerSourceId).Distinct().ToList();
-            var connexDiallerSources = await context.ConnexDiallerSources.Where(cds => connexDiallerSourceIds.Contains(cds.Id)).AsNoTracking().ToListAsync();
-
-            var actionerIds = ListCampaigns.Select(c => c.ActionedBy).Distinct().ToList();
-            var actioners = await context.Users.Where(u => actionerIds.Contains(u.Id)).AsNoTracking().ToListAsync();
-
-            Requesters = await context.Users.AsNoTracking().ToListAsync();
-            foreach (var campaign in ListCampaigns)
-            {
-                Requester = Requesters.FirstOrDefault(x => x.Id == campaign.RequesterId) ?? new();
-                campaign.BusinessUnit = businessUnits.FirstOrDefault(b => b.Id == campaign.BusinessUnitId);
-                campaign.Campaign = campaigns.FirstOrDefault(c => c.Id == campaign.CampaignId);
-                campaign.Slot = slots.FirstOrDefault(s => s.Id == campaign.SlotId);
-                campaign.Media = media.FirstOrDefault(m => m.Id == campaign.MediaId);
-                campaign.Source = sources.FirstOrDefault(s => s.Id == campaign.SourceId);
-                campaign.SourceBreak = sourceBreaks.FirstOrDefault(sb => sb.Id == campaign.SourceBreakId);
-                campaign.Publication = publications.FirstOrDefault(p => p.Id == campaign.PublicationId);
-                campaign.PublicationOwner = publicationOwners.FirstOrDefault(po => po.Id == campaign.PublicationOwnerId);
-                campaign.Channel = channels.FirstOrDefault(ch => ch.Id == campaign.ChannelId);
-                campaign.CommunicationType = communicationTypes.FirstOrDefault(ct => ct.Id == campaign.CommunicationTypeId);
-                campaign.ConnexDiallerCampaign = connexDiallerCampaigns.FirstOrDefault(cdc => cdc.Id == campaign.ConnexDiallerCampaignId);
-                campaign.ConnexDiallerSource = connexDiallerSources.FirstOrDefault(cds => cds.Id == campaign.ConnexDiallerSourceId);
-                campaign.Actioner = actioners.FirstOrDefault(u => u.Id == campaign.ActionedBy);
-
-            }
-
-        }
         if (ListCampaigns is not null)
         {
             ActiveCampaigns = ListCampaigns.Where(c => c.IsActive == true).ToList();
@@ -321,9 +234,7 @@
             activeCampaignsCount = ActiveCampaigns.Count();
             inactiveCampaignsCount = ListCampaigns.Where(c => c.IsActive == false).Count();
             pendingCampaignsCount = ListCampaigns.Where(c => c.IsPending == true).Count();
-
+            Campaigns = ListCampaigns;
         }
-        Campaigns = ListCampaigns;
-
     }
 }
