@@ -15,32 +15,18 @@
 <PageTitle>OCD</PageTitle>
 
 <MudLayout>
-<AuthorizeView>
-    <Authorized>
-        
-
-                    <NavMenu />
-
-                
-                <MudMainContent Class="mt-16 pa-4">
+    <AuthorizeView>
+        <Authorized>
+            <NavMenu />
+            <MudMainContent Class="mt-16 pa-4">
                 @Body
-                    </MudMainContent>
-
-    </Authorized>
-    <NotAuthorized>
-        <OCD.Components.RedirectToLogin />
-    </NotAuthorized>
-</AuthorizeView>
+            </MudMainContent>
+        </Authorized>
+        <NotAuthorized>
+            <OCD.Components.RedirectToLogin />
+        </NotAuthorized>
+    </AuthorizeView>
 </MudLayout>
 @code {
-    // protected override async Task OnInitializedAsync()
-    // {
-    //     var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-    //     var user = authState.User;
-
-    //     if (user.Identity?.IsAuthenticated == true)
-    //     {
-    //         await UserService.RedirectBasedOnUserRoleAsync(user.Identity.Name);
-    //     }
-    // }
+   
 }
