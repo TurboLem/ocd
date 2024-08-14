@@ -150,6 +150,34 @@ namespace OCD.Services.CampaignRequestService
             return response;
         }
 
+        public async Task<GetCampaignRequestsResponse> GetMultibrandCampaignRequests()
+        {
+            using (var context = await _dataContext.CreateDbContextAsync())
+            {
+                var response = new GetCampaignRequestsResponse();
+                try
+                {
+                    var campaignRequests = await context.CampaignRequests
+                        .Where(p => p.PackTypeId == null)
+                        .AsNoTracking()
+                        .ToListAsync();
+
+                    var processedCampaignRequests = await BuildCampaignRequest(campaignRequests);
+
+                    response.CampaignRequests = processedCampaignRequests;
+                    response.StatusCode = 200;
+                    response.Message = "Campaign Requests retrieved successfully";
+                }
+                catch (Exception ex)
+                {
+                    response.StatusCode = 500;
+                    response.Message = $"Error retrieving campaign requests: {ex.Message}";
+                    response.CampaignRequests = null;
+                }
+                return response;
+            }
+        }
+
         #region GetOnePackCampaignRequests
         public async Task<GetCampaignRequestsResponse> GetOnePackCampaignRequests()
         {

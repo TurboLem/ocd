@@ -10,6 +10,7 @@ namespace OCD.Services.CampaignRequestService
         Task<GetCampaignRequestsResponse> GetCampaignRequestsByTrackingCode(string trackingCode);
         Task<GetCampaignRequestsResponse> GetOnePackCampaignRequests();
         Task<GetCampaignRequestsResponse> GetThreePackCampaignRequests();
+        Task<GetCampaignRequestsResponse> GetMultibrandCampaignRequests();
         Task<OCD.Models.CampaignRequest> GetCampaignRequestByIdAsync(int id);
         Task<GetUserCampaignsResponse> GetUserCampaigns(string userId);
         Task<BaseResponse> AddCampaignRequest(CampaignRequestDTO campaignRequestDTO);
