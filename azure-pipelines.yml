@@ -48,7 +48,7 @@ stages:
   - template: 'templates/Docker Build.yml@TIH-Pipelines'
     parameters:
       ImageName: '${{variables.projectImage}}'
-      DockerFile: $(Build.SourcesDirectory)/dockerfile
+      DockerFile: $(Build.SourcesDirectory)/Dockerfile
 
   - template: 'templates/K8s Deploy - Dev.yml@TIH-Pipelines'
     parameters:
