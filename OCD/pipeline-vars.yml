@@ -1,5 +1,0 @@
-﻿variables:
-  applicationName: online-campaign-dashboard
-  teamName: marketing
-  projectNamespace: online-campaign-dashboard
-  k8sManifestDir: $(Build.SourcesDirectory)
