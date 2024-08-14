@@ -9,7 +9,7 @@
 <AuthorizeView Roles="Requester">
     <Authorized>
 
-    <MudCard Class="d-flex align-items-center justify-content-center min-vh-100">
+    
         <MudCardContent Class="container mt-5">
 
                     <MudExpansionPanels MultiExpansion="true" Outlined="true" Elevation="5">
@@ -251,15 +251,9 @@
                     </MudForm>
                     </MudExpansionPanels>
                     <MudCardActions Class="justify-content-center">
-
                         <MudButton Color="Color.Warning" Variant="Variant.Filled" OnClick="OnConfirm3Pack">Request Campaign</MudButton>
-
-                    </MudCardActions>
-                    
+                    </MudCardActions>     
         </MudCardContent>
-    </MudCard>
-
-
     </Authorized>
     <NotAuthorized>
         <MudAlert Severity="Severity.Error">You are not authorized to view this page.</MudAlert>

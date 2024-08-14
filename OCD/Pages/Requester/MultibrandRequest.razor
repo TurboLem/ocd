@@ -10,7 +10,7 @@
 
 <AuthorizeView Roles="Requester">
     <Authorized>
-        <MudCard Class="d-flex align-items-center justify-content-center min-vh-100">
+        
             <MudCardContent Class="container mt-5">
                 <MudExpansionPanels MultiExpansion="true" Outlined="true" Elevation="2">
                     <MudForm @ref="form1">
@@ -385,7 +385,6 @@
 
                 </MudCardActions>
             </MudCardContent>
-        </MudCard>
     </Authorized>
     <NotAuthorized>
         <MudAlert Severity="Severity.Error">You are not authorized to view this page.</MudAlert>
