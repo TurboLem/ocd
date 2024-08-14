@@ -70,6 +70,13 @@
                             </MudStack>
                         </CellTemplate>
                     </TemplateColumn>
+                <TemplateColumn CellClass=" justify-end" HeaderStyle="white-space:nowrap">
+                    <CellTemplate Context="_context">
+                        <MudStack Row>
+                            <MudButton StartIcon="@Icons.Material.Filled.Preview" Variant="@Variant.Filled" Color="Color.Info" Size="@Size.Small" OnClick="() => ViewComments(_context.Item.Id)">View Comment(s)</MudButton>
+                        </MudStack>
+                    </CellTemplate>
+                </TemplateColumn>
                 </Columns>
                 <PagerContent>
                     <MudDataGridPager />
@@ -132,5 +139,9 @@
         selectedCampaign = campaign;
         // Navigate to edit page or show modal
         NavigationManager.NavigateTo($"/ops/campaigns/one-pack/edit/{campaign.Id}");
+    }
+    private void ViewComments(int campaignRequestId)
+    {
+        NavigationManager.NavigateTo($"/comments/{campaignRequestId}");
     }
 }
