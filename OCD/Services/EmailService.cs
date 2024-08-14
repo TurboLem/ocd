@@ -31,13 +31,13 @@ namespace OCD.Services
 
             var smtpClient = new SmtpClient(smtpHost)
             {
-                Port = int.Parse(_configuration["Smtp:Port"]),
+                Port = int.Parse(_configuration["Smtp:Port"]!),
                 Credentials = new NetworkCredential(smtpUsername, smtpPassword),
                 EnableSsl = true,
             };
             var message = new MailMessage
             {
-                From = new MailAddress(smtpUsername ?? _configuration["Smtp:From"]),
+                From = new MailAddress(smtpUsername ?? _configuration["Smtp:From"]!),
                 Subject = subject,
                 Body = messageBody,
                 IsBodyHtml = true,
