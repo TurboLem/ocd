@@ -87,7 +87,18 @@
                                         }
                                     </select>
                                     <label for="Input.ManagerId">Manager</label>
-                                </div> 
+                                </div>
+                                <div id="managerYesNo"  class="mb-3">
+                                    <label class="form-label">Are you a Manager?</label>
+                                    <div  class="form-check">
+                                        <input class="form-check-input" type="radio" asp-for="Input.IsManager" value="true" id="isManagerYes" />
+                                        <label class="form-check-label" for="isManagerYes">Yes</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" asp-for="Input.IsManager" value="false" id="isManagerNo" />
+                                        <label class="form-check-label" for="isManagerNo">No</label>
+                                    </div>
+                                </div>
 
                                 <div class="mb-3">
                                     <button id="login-submit" type="submit" class="w-100 btn btn-primary btn-sm" style="background:#ff9800; color:white">Request Access</button>
@@ -110,8 +121,10 @@
 
             if (requesterRadio.checked || opsRadio.checked) {
                 managerDropdown.style.display = 'block';
+                managerYesNo.style.display = 'none'
             } else {
                 managerDropdown.style.display = 'none';
+                managerYesNo.style.display = 'block'
             }
         }
     </script>
