@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Services;
@@ -8,16 +9,15 @@ using OCD;
 using OCD.Data;
 using OCD.Services;
 using OCD.Services.CampaignRequestService;
+using OCD.Services.TestVDNService;
 
-//var smtpConfig = Environment.GetEnvironmentVariable("GMAIL_SMTP_USER");
-//var devDbConnString = Environment.GetEnvironmentVariable("DATABASE_URL");
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ?? builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContextFactory<DataContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
@@ -55,12 +55,20 @@ builder.Services.AddScoped<ICampaignRequestService, CampaignRequestService>();
 builder.Services.AddScoped<OCD.Services.IRoleRedirectService, OCD.Services.RoleRedirectService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddHttpClient<ITestVDNService, TestVDNService>();
 
 
 builder.Services.AddAuthenticationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<ApplicationUser>>();
 
-// for Kong, set Kestrel to use/listen port 80 since running on rancher
+// TODO: for Kong, set Kestrel to use/listen port 80 since running on rancher
+
+//builder.Services.Configure<KestrelServerOptions>(options =>
+//{
+//    options.ListenAnyIP(80);
+//});
+builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
+builder.Logging.AddConsole();
 
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
