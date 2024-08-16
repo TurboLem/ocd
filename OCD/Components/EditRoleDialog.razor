@@ -38,23 +38,40 @@
 
     private async Task Submit()
     {
-        var currentRoles = await UserManager.GetRolesAsync(User);
-        var removeResult = await UserManager.RemoveFromRolesAsync(User, currentRoles);
-        if (!removeResult.Succeeded)
+       
+        var freshUser = await UserManager.FindByIdAsync(User.Id);
+        if (freshUser == null)
         {
-            Snackbar.Add("Failed to remove user roles.", Severity.Error);
+            Snackbar.Add("User not found.", Severity.Error);
             return;
         }
 
-        var addResult = await UserManager.AddToRoleAsync(User, SelectedRole);
-        if (addResult.Succeeded)
+        var currentRoles = await UserManager.GetRolesAsync(freshUser);
+
+        if (!currentRoles.Contains(SelectedRole))
         {
-            Snackbar.Add($"{User.Name} {User.Surname}'s role has been updated to {SelectedRole}.", Severity.Success);
-            MudDialog.Close(DialogResult.Ok(true));
+            var removeResult = await UserManager.RemoveFromRolesAsync(freshUser, currentRoles);
+            if (!removeResult.Succeeded)
+            {
+                Snackbar.Add("Failed to remove user roles.", Severity.Error);
+                return;
+            }
+
+            var addResult = await UserManager.AddToRoleAsync(freshUser, SelectedRole);
+            if (addResult.Succeeded)
+            {
+                Snackbar.Add($"{freshUser.Name} {freshUser.Surname}'s role has been updated to {SelectedRole}.", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                Snackbar.Add("Failed to update user role.", Severity.Error);
+            }
         }
         else
         {
-            Snackbar.Add("Failed to update user role.", Severity.Error);
+            Snackbar.Add("No change in role.", Severity.Info);
+            MudDialog.Close(DialogResult.Ok(false));
         }
     }
 
