@@ -2,8 +2,9 @@
 {
     public class TestVDN
     {
-        public string Name { get; set; } = string.Empty;
-        public string Tel { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
+        public string Surname { get; set; } = string.Empty;
+        public string MobileNumber { get; set; } = string.Empty;
         public string VDN { get; set; } = string.Empty;
     }
 }
