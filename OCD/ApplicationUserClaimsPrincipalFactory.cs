@@ -8,17 +8,22 @@ namespace OCD
     public class ApplicationUserClaimsPrincipalFactory : UserClaimsPrincipalFactory<ApplicationUser>
     {
         public ApplicationUserClaimsPrincipalFactory(UserManager<ApplicationUser> 
-            userManager, IOptions<IdentityOptions> optionsAccessor) 
+            userManager,  IOptions<IdentityOptions> optionsAccessor) 
             : base(userManager, optionsAccessor)
         {
         }
 
-        //protected override async Task<ClaimsIdentity> GenerateClaimsAsync(ApplicationUser user)
-        //{
-        //    var identity = await base.GenerateClaimsAsync(user);
-        //    identity.AddClaim(new Claim(ClaimTypes.GivenName, user.Name ?? string.Empty));
-        //    identity.AddClaim(new Claim(ClaimTypes.Surname, user.Surname ?? string.Empty));
-        //    return identity;
-        //}
+        protected override async Task<ClaimsIdentity> GenerateClaimsAsync(ApplicationUser user)
+        {
+            var identity = await base.GenerateClaimsAsync(user);
+            identity.AddClaim(new Claim(ClaimTypes.GivenName, user.Name ?? string.Empty));
+            identity.AddClaim(new Claim(ClaimTypes.Surname, user.Surname ?? string.Empty));
+            var roles = await UserManager.GetRolesAsync(user);
+            foreach (var role in roles.Distinct())
+            {
+                identity.AddClaim(new Claim(ClaimTypes.Role, role));
+            }
+            return identity;
+        }
     }
 }
