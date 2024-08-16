@@ -45,7 +45,7 @@
                                     <MudStack Row="true" Spacing="2">
                                         <MudButton StartIcon="@Icons.Material.Filled.Edit" Variant="@Variant.Filled" Color="@Color.Secondary" Size="@Size.Small" OnClick="() => OpenEditDialog(_context.Item.User)">Confirm Role</MudButton>
                                         <MudButton StartIcon="@Icons.Material.Filled.NotStarted" Variant="@Variant.Filled" Color="@Color.Primary" Size="@Size.Small" OnClick="@(async () => await ActivateAccount(_context.Item.User))">Activate Account</MudButton>
-                                        @if (IsProcessing)
+                                        @if (_context.Item.IsActivating)
                                         {
                                             <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
                                         }
@@ -109,8 +109,12 @@
     private async Task ActivateAccount(ApplicationUser user)
 
     {
-        IsProcessing = true; 
-        StateHasChanged(); 
+        var userWithRole = PendingUsers.FirstOrDefault(u => u.User.Id == user.Id);
+        if (userWithRole != null)
+        {
+            userWithRole.IsActivating = true;
+            StateHasChanged();
+        }
         user.IsActive = true;
         var context = await DbContextFactory.CreateDbContextAsync();
         context.Users.Update(user);
@@ -125,8 +129,11 @@
 
             Snackbar.Add($"{user.Name} {user.Surname} has been successfully granted access. A confirmation email has been sent to the user", Severity.Success);
         }
-        IsProcessing = false; 
-        StateHasChanged(); 
+        if (userWithRole != null)
+        {
+            userWithRole.IsActivating = false;
+            StateHasChanged();
+        }
     }
     private async void OpenEditDialog(ApplicationUser user)
     {
@@ -144,6 +151,7 @@
     {
         public ApplicationUser User { get; set; } = default!;
         public string Role { get; set; } = string.Empty;
+        public bool IsActivating { get; set; } = false;
     }
     private async Task RefreshUsers()
     {
