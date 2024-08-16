@@ -206,7 +206,7 @@
     private int activeIndex;
     private string searchString = string.Empty;
     private string selectedCampaignType = "All";
-    private IEnumerable<ApplicationUser> Requesters { get; set; }
+    
     private int totalCampaignsCount;
     private int activeCampaignsCount;
     private int inactiveCampaignsCount;
@@ -218,7 +218,7 @@
     private IEnumerable<CampaignRequest> InActiveCampaigns { get; set; }
     private IEnumerable<CampaignRequest> PendingCampaigns { get; set; }
     private IEnumerable<CampaignRequest> Campaigns { get; set; }
-    private ApplicationUser Requester { get; set; }
+    
     protected override async Task OnInitializedAsync()
     {
 
