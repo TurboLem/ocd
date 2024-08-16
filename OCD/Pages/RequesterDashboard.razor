@@ -69,13 +69,7 @@
                 </MudTabPanel>
                 <MudTabPanel Text="My Active Campaigns">
                     <div class="mb-3 d-flex align-items-center">
-                        <MudTextField @bind-Value="searchString" Placeholder="" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="mr-3" Style="width: 300px;" />
-                        <MudSelect @bind-Value="selectedCampaignType" Label="All campaign types" T="string" Style="width: 100px;">
-                            <MudSelectItem Value="@("All")">All</MudSelectItem>
-                            <MudSelectItem Value="@("Active")">Active</MudSelectItem>
-                            <MudSelectItem Value="@("Inactive")">Inactive</MudSelectItem>
-                            <MudSelectItem Value="@("Completed")">Completed</MudSelectItem>
-                        </MudSelect>
+                        
                     </div>
                     <MudDataGrid Class="shadow-md rounded-lg border grid mt-7" Items="@ActiveCampaigns" HorizontalScrollbar="true" Hover="true" Striped="true" RowsPerPageOptions="new int[] { 10, 25, 50, 100 }" FixedHeader="true" Height="65vh" RowsPerPage="10" Style="background-color:white;">
                         <Columns>
@@ -117,13 +111,7 @@
                 </MudTabPanel>
                 <MudTabPanel Text="My Inactive Campaigns">
                     <div class="mb-3 d-flex align-items-center">
-                        <MudTextField @bind-Value="searchString" Placeholder="" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="mr-3" Style="width: 300px;" />
-                        <MudSelect @bind-Value="selectedCampaignType" Label="All campaign types" T="string" Style="width: 100px;">
-                            <MudSelectItem Value="@("All")">All</MudSelectItem>
-                            <MudSelectItem Value="@("Active")">Active</MudSelectItem>
-                            <MudSelectItem Value="@("Inactive")">Inactive</MudSelectItem>
-                            <MudSelectItem Value="@("Completed")">Completed</MudSelectItem>
-                        </MudSelect>
+                       
                     </div>
                     <MudDataGrid Class="shadow-md rounded-lg border grid mt-7" Items="@InActiveCampaigns" HorizontalScrollbar="true" Hover="true" Striped="true" RowsPerPageOptions="new int[] { 10, 25, 50, 100 }" FixedHeader="true" Height="65vh" RowsPerPage="10" Style="background-color:white;">
                         <Columns>
@@ -172,13 +160,7 @@
                 </MudTabPanel>
                 <MudTabPanel Text="My Pending Campaigns">
                     <div class="mb-3 d-flex align-items-center">
-                        <MudTextField @bind-Value="searchString" Placeholder="" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="mr-3" Style="width: 300px;" />
-                        <MudSelect @bind-Value="selectedCampaignType" Label="All campaign types" T="string" Style="width: 100px;">
-                            <MudSelectItem Value="@("All")">All</MudSelectItem>
-                            <MudSelectItem Value="@("Active")">Active</MudSelectItem>
-                            <MudSelectItem Value="@("Inactive")">Inactive</MudSelectItem>
-                            <MudSelectItem Value="@("Completed")">Completed</MudSelectItem>
-                        </MudSelect>
+                        
                     </div>
                     <MudDataGrid Class="shadow-md rounded-lg border grid mt-7" Items="@PendingCampaigns" HorizontalScrollbar="true" Hover="true" Striped="true" RowsPerPageOptions="new int[] { 10, 25, 50, 100 }" FixedHeader="true" Height="65vh" RowsPerPage="10" Style="background-color:white;">
                         <Columns>
@@ -274,20 +256,29 @@
 
     protected override async Task OnInitializedAsync()
     {
-
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var myId = user.Claims.Where(x => x.Type == System.Security.Claims.ClaimTypes.NameIdentifier).Select(x => x.Value).FirstOrDefault();
         var response = await CampaignService.GetCampaignRequestsAsync();
         ListCampaigns = response.CampaignRequests!;
-
+        using (var context = await DbContextFactory.CreateDbContextAsync())
+        {
+            unreadCommentsCount = await context.Comments
+                .Include(c => c.Commenter)
+                .Where(c => c.CampaignRequest.RequesterId == myId && !c.IsViewed)
+                .AsNoTracking()
+                .CountAsync();
+        }
         if (ListCampaigns is not null)
         {
-            ActiveCampaigns = ListCampaigns.Where(c => c.IsActive == true).ToList();
-            InActiveCampaigns = ListCampaigns.Where(c => c.IsActive == false).ToList();
-            PendingCampaigns = ListCampaigns.Where(c => c.IsPending == true).ToList();
-            totalCampaignsCount = ListCampaigns.Count();
+            ActiveCampaigns = ListCampaigns.Where(c => c.IsActive == true && c.RequesterId == myId).ToList();
+            InActiveCampaigns = ListCampaigns.Where(c => c.IsActive == false && c.RequesterId == myId).ToList();
+            PendingCampaigns = ListCampaigns.Where(c => c.IsPending == true && c.RequesterId == myId).ToList();
+            totalCampaignsCount = ListCampaigns.Where(c => c.RequesterId == myId).Count();
             activeCampaignsCount = ActiveCampaigns.Count();
-            inactiveCampaignsCount = ListCampaigns.Where(c => c.IsActive == false).Count();
-            pendingCampaignsCount = ListCampaigns.Where(c => c.IsPending == true).Count();
-            Campaigns = ListCampaigns;
+            inactiveCampaignsCount = ListCampaigns.Where(c => c.IsActive == false && c.RequesterId == myId).Count();
+            pendingCampaignsCount = ListCampaigns.Where(c => c.IsPending == true && c.RequesterId == myId).Count();
+            Campaigns = ListCampaigns.Where(c => c.RequesterId == myId);
         }
 
     }
