@@ -1,0 +1,61 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using OCD.Data
+@inject IDbContextFactory<DataContext> DbContextFactory
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @bind-IsValid="isValid" @ref="form">
+            <MudCheckBox @bind-Value="isTested" Label="I have tested the new campaign & received a call back" />
+            <MudCheckBox @bind-Value="isVerified" Label="I have verified with agent that brand/tracking code/vdn is correct" />
+            <MudCheckBox @bind-Value="isConfirmed" Label="I have confirmed with agent to close contact/lead as a test" />
+            <MudCheckBox @bind-Value="isApproved" Label="I have approved the campaign to go live" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Warning" Disabled="!isValid" OnClick="Submit">Submit</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private MudForm form;
+    private bool isValid;
+
+    private bool isTested = false;
+    private bool isVerified = false;
+    private bool isConfirmed = false;
+    private bool isApproved = false;
+    [CascadingParameter]
+    private MudDialogInstance MudDialog { get; set; }
+    [Parameter]
+    public int CampaignRequestId { get; set; }
+    private ApplicationUser LoggedInUser { get; set; }
+
+
+    private async Task Submit()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        
+        using (var context = await DbContextFactory.CreateDbContextAsync())
+        {
+            // TODO: Set isConfirmed to true in the database
+        }
+
+
+        var selectedOptions = new List<string>();
+        if (isTested) selectedOptions.Add("I have tested the new campaign & received a call back");
+        if (isVerified) selectedOptions.Add("I have verified with agent that brand/tracking code/vdn is correct");
+        if (isConfirmed) selectedOptions.Add("I have confirmed with agent to close contact/lead as a test");
+        if (isApproved) selectedOptions.Add("I have approved the campaign to go live");
+
+        MudDialog.Close(DialogResult.Ok(selectedOptions));
+    }
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}
