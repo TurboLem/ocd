@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <Folder Include="Components\Account\" />
+    <Folder Include="Pages\Viewer\" />
   </ItemGroup>
 
   <ItemGroup>
