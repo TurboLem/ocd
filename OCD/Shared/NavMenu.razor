@@ -5,26 +5,13 @@
 @using Microsoft.EntityFrameworkCore
 @using OCD.Data
 @using OCD.Services
+@using System.Security.Claims
 @inject UserManager<ApplicationUser> UserManager
 @inject IUserService UserService
 @inject IDbContextFactory<DataContext> DbContextFactory
 
-@* <MudAppBar Color="Color.Warning" Fixed="true">
 
-            <MudIconButton Href="@homeUrl"  Icon="@Icons.Material.Filled.Home" Edge="Edge.Start"  />
-            <!--TODO: Add home navigation based logged in user's role' else add NavBar to all components using @ChildContent -->
-
-        <MudSpacer/>
-        <MudTooltip Text="@($"{Name} {Surname}")">
-        <MudAvatar Style="@($"background-color:{Colors.Amber.Lighten2}")">@userInitials</MudAvatar>
-    </MudTooltip>
-        <MudTooltip Text="Logout">
-            <MudIconButton Href="/identity/account/logout" Icon="@Icons.Material.Filled.Logout" Edge="Edge.End" />
-            </MudTooltip>
-
-</MudAppBar> *@
-
-<MudAppBar Color="Color.Warning" Fixed="true" Elevation="1">
+<MudAppBar Style="background-color:#f48121"  Fixed="true" Elevation="1">
     <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
     <MudText Typo="Typo.h5" Class="ml-3">OCD</MudText>
     <MudSpacer />
@@ -43,6 +30,9 @@
                 <MudNavLink Href="/add-campaign/one-pack-request">One-Pack Request</MudNavLink>
                 <MudNavLink Href="/add-campaign/three-pack-request">Three-Pack Request</MudNavLink>
                 <MudNavLink Href="/add-campaign/multi-brand-request">Multi-Brand Request</MudNavLink>
+                <MudNavLink Href="/notifications" >
+                    Notifications
+                </MudNavLink>
 
             </Authorized>
         </AuthorizeView>
@@ -81,36 +71,34 @@
     private string Surname = string.Empty;
     private string homeUrl = "/";
     private bool _drawerOpen = true;
+    private bool initialLoad;
 
     private ApplicationUser loggedInUser;
 
     protected override async Task OnInitializedAsync()
     {
+      
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
+        var myId = user.Claims.Where(x => x.Type == System.Security.Claims.ClaimTypes.NameIdentifier).Select(x => x.Value).FirstOrDefault();
+        var name = user.FindFirst(ClaimTypes.GivenName)?.Value;
+        var surname = user.FindFirst(ClaimTypes.Surname)?.Value;
 
-
-
-        // loggedInUser = await UserService.GetLoggedInUserAsync(user);
-
-        using var context = DbContextFactory.CreateDbContext();
-        isAuthenticated = user.Identity.IsAuthenticated;
+        using var context = await DbContextFactory.CreateDbContextAsync();
+        isAuthenticated = user.Identity?.IsAuthenticated ?? false;
         if (!isAuthenticated)
         {
             NavigationManager.NavigateTo("/identity/account/login");
         }
         else
         {
+          
             var roles = user.Claims.Where(c => c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).ToList();
 
-            loggedInUser = await context.Users.FirstOrDefaultAsync(x => x.Email == user.Identity.Name) ?? new();
-
-            if (loggedInUser != null)
-            {
-                userInitials = GetInitials(loggedInUser.Name, loggedInUser.Surname);
-                Name = loggedInUser.Name;
-                Surname = loggedInUser.Surname;
-            }
+                userInitials = GetInitials(name, surname);
+                Name = name;
+                Surname = surname;
+            
             if (roles.Contains("Superuser"))
             {
                 homeUrl = "/manager-dashboard";
@@ -118,6 +106,8 @@
             else if (roles.Contains("Requester"))
             {
                 homeUrl = "/requester-dashboard";
+              
+
             }
             else if (roles.Contains("Ops"))
             {
@@ -140,4 +130,5 @@
     {
         _drawerOpen = !_drawerOpen;
     }
+    
 }
