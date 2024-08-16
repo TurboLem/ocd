@@ -1,5 +1,4 @@
-﻿
-@using Microsoft.EntityFrameworkCore
+﻿@using Microsoft.EntityFrameworkCore
 @using OCD.Data
 @using OCD.Models
 @inject IDbContextFactory<DataContext> DbContextFactory
@@ -16,9 +15,9 @@
         </MudRadioGroup>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled"  OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
         <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="AddComment">Submit</MudButton>
-        
+
     </DialogActions>
 </MudDialog>
 
@@ -38,9 +37,10 @@
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
-        
 
-        using (var context = DbContextFactory.CreateDbContext()){
+
+        using (var context = DbContextFactory.CreateDbContext())
+        {
 
             LoggedInUser = await context.Users.FirstOrDefaultAsync(u => u.Email == user.Identity.Name);
 
@@ -60,7 +60,7 @@
         MudDialog.Close(DialogResult.Ok(true));
         NavigationManager.NavigateTo("/ops-dashboard");
         Snackbar.Add("Campaign request submitted", Severity.Success);
-       
+
 
         if (OnCommentAdded.HasDelegate)
         {
