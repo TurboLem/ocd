@@ -6,207 +6,239 @@
 @inject IDbContextFactory<DataContext> DbContextFactory
 @inject ISnackbar Snackbar
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
 
 <AuthorizeView Roles="Requester">
     <Authorized>
-      
+
         @* <div class="form-container"> *@
-            <MudForm @ref="form1" OnValidSubmit="OnValidSubmit">
-                
-                    <MudCardContent Class="container mt-5">
-                        <MudText Typo="Typo.h6">Campaign Request</MudText>
+        <MudForm @ref="form1" OnValidSubmit="OnValidSubmit">
 
-                        <!-- Campaign Information Section -->
-                    <MudExpansionPanels MultiExpansion="true" Outlined="true" Elevation="5">
-                            <MudExpansionPanel Text="Campaign Information" Expanded="true">
-                            <div class="mb-3">
-                                <MudTextField  Label="SysAid Log" @bind-Value="parentCampaignRequest.SysAidLog" Required="true" RequiredError="Please enter a SysAid Log" Variant="Variant.Outlined" />
-                                <MudText>
-                                    No SysAid?
-                                    <MudLink Href="https://sysaidsvr1.isservices.co.za/servicePortal" Target="_blank" Class="text-blue-500 underline">
-                                        Click here
-                                    </MudLink>
-                                </MudText>
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group col-md-4">
-                                    <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Communication Type" @bind-Value="parentCampaignRequest.CommunicationTypeId"
-                                    Required="true" RequiredError="Please select a communication type" Variant="Variant.Outlined"
-                                    >
-                                    @foreach (var communicationType in communicationTypes)
-                                    {
-                                        <MudSelectItem Value="@communicationType.Id">@communicationType.Name</MudSelectItem>
-                                    }
-                                </MudSelect>
-                                </div>
-                                <div class="form-group col-md-4">
-                                    <MudSelect T="int" AnchorOrigin="Origin.BottomCenter" Label="Business Unit" @bind-Value="parentCampaignRequest.BusinessUnitId" Required="true" RequiredError="Please select a business unit" Variant="Variant.Outlined">
-                                    @foreach (var businessUnit in businessUnits)
-                                    {
-                                        <MudSelectItem Value="@businessUnit.Id">@businessUnit.UnitName</MudSelectItem>
-                                    }
-                                </MudSelect>
-                                </div>
-                                <div class="form-group col-md-4">
-                                    <MudSelect T="string" AnchorOrigin="Origin.BottomCenter" Label="Brand" @bind-Value="parentCampaignRequest.CampaignRequestBrands" Required="true" RequiredError="Please select a brand" Variant="Variant.Outlined">
-                                    @foreach (var brand in brands)
-                                    {
-                                        <MudSelectItem Value="@brand.Name">@brand.Name</MudSelectItem>
-                                    }
-                                </MudSelect>
-                                </div>
+            <MudCardContent Class="container mt-5">
+                <MudText Typo="Typo.h6">Campaign Request</MudText>
 
+                <!-- Campaign Information Section -->
+                <MudExpansionPanels MultiExpansion="true" Outlined="true" Elevation="5">
+                    <MudExpansionPanel Text="Campaign Information" Expanded="true">
+                        <div class="mb-3">
+                            <MudTextField Label="SysAid Log" @bind-Value="parentCampaignRequest.SysAidLog" Required="true" RequiredError="Please enter a SysAid Log" Variant="Variant.Outlined" />
+                            <MudText>
+                                No SysAid?
+                                <MudLink Href="https://sysaidsvr1.isservices.co.za/servicePortal" Target="_blank" Class="text-blue-500 underline">
+                                    Click here
+                                </MudLink>
+                            </MudText>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <MudAutocomplete T="CommunicationType"
+                                                 Label="Communication Type"
+                                                 @bind-Value="SelectedCommunicationType"
+                                                 SearchFunc="@(async (searchString, token) => await SearchCommunicationTypes(searchString, token))"
+                                                 ToStringFunc="@(c => c == null ? string.Empty : c.Name)"
+                                                 MaxItems="1000"
+                                                 AnchorOrigin="Origin.BottomCenter"
+                                                 Variant="Variant.Outlined"
+                                                 Required="true" />
                             </div>
-                                <MudTextField @bind-Value="parentCampaignRequest.Description" Label="Campaign Name" Required="true" RequiredError="Please fill in the name of your campaign" Variant="Variant.Outlined" />
-                            </MudExpansionPanel>
+                            <div class="form-group col-md-4">
+                                <MudAutocomplete T="BusinessUnit"
+                                                 Label="Business Unit"
+                                                 @bind-Value="SelectedBusinessUnit"
+                                                 SearchFunc="@(async (searchString, token) => await SearchBusinessUnits(searchString, token))"
+                                                 ToStringFunc="@(b => b == null ? string.Empty : b.UnitName)"
+                                                 MaxItems="1000"
+                                                 AnchorOrigin="Origin.BottomCenter"
+                                                 Variant="Variant.Outlined"
+                                                 Required="true" />
+                            </div>
+                            <div class="form-group col-md-4">
 
-                            <!-- Contact Information Section -->
-                        <MudExpansionPanel Text="Contact Information" >
-                                <div class="form-row">
-                                    <div class="form-group col-md-4">
+                                <MudAutocomplete T="Brand"
+                                                 Label="Brand"
+                                                 @bind-Value="SelectedBrand"
+                                                 SearchFunc="@(async (searchString, token) => await SearchBrands(searchString, token))"
+                                                 ToStringFunc="@(b => b == null ? string.Empty : b.Name)"
+                                                 MaxItems="1000"
+                                                 AnchorOrigin="Origin.BottomCenter"
+                                                 Variant="Variant.Outlined"
+                                                 Required="true" />
+                            </div>
+
+                        </div>
+                        <MudTextField @bind-Value="parentCampaignRequest.Description" Label="Campaign Name" Required="true" RequiredError="Please fill in the name of your campaign" Variant="Variant.Outlined" />
+                    </MudExpansionPanel>
+
+                    <!-- Contact Information Section -->
+                    <MudExpansionPanel Text="Contact Information">
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
                                 <MudTextField @bind-Value="parentCampaignRequest.SmsNumber" Label="ShortCode Number" Disabled="true" Variant="Variant.Outlined" />
-                                </div>
-                                <div class="form-group col-md-4">
+                            </div>
+                            <div class="form-group col-md-4">
                                 <MudTextField @bind-Value="parentCampaignRequest.SharecallNumber" Label="ShareCall Number" Disabled="true" Variant="Variant.Outlined" />
-                                </div>
-                                <div class="form-group col-md-4">
+                            </div>
+                            <div class="form-group col-md-4">
                                 <MudTextField @bind-Value="parentCampaignRequest.TrackingCode" Label="VDN/Tracking Code" Disabled="true" Variant="Variant.Outlined" />
-                                </div>
-                                </div>
-                            </MudExpansionPanel>
+                            </div>
+                        </div>
+                    </MudExpansionPanel>
 
-                            <!-- Broker and Campaign Details Section -->
-                            <MudExpansionPanel Text="Broker and Dialler Details">
-                                <div class="form-row">
-                                     <div class="form-group col-md-4">
-                                    <MudSelect AnchorOrigin="Origin.BottomCenter" T="string" Label="Broker Code" @bind-Value="parentCampaignRequest.CampaignBrokerCodes" Required="true" RequiredError="Please select a broker code" Variant="Variant.Outlined">
-                                    @foreach (var brokerCode in brokerCodes)
+                    <!-- Broker and Campaign Details Section -->
+                    <MudExpansionPanel Text="Broker and Dialler Details">
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+
+                                <MudAutocomplete T="BrokerCode"
+                                                 Label="Broker Code"
+                                                 @bind-Value="SelectedBrokerCode"
+                                                 SearchFunc="@(async (searchString, token) => await SearchBrokerCodes(searchString, token))"
+                                                 ToStringFunc="@(b => b == null ? string.Empty : b.Code)"
+                                                 MaxItems="1000"
+                                                 AnchorOrigin="Origin.BottomCenter"
+                                                 Variant="Variant.Outlined"
+                                                 Required="true" />
+                            </div>
+                            <div class="form-group col-md-4">
+                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Connex Dialler Campaign" @bind-Value="parentCampaignRequest.ConnexDiallerCampaignId"
+                                           Required="true" RequiredError="Please select a dialler campaign" Variant="Variant.Outlined"
+                                           SelectedValuesChanged="@(EventCallback.Factory.Create<IEnumerable<int>>(this, OnConnexDiallerCampaignChanged))">
+                                    @foreach (var campaign in connexDiallerCampaigns)
                                     {
-                                        <MudSelectItem Value="@brokerCode.Code">@brokerCode.Code</MudSelectItem>
+                                        <MudSelectItem T="int" Value="campaign.Id">@campaign.Name</MudSelectItem>
                                     }
                                 </MudSelect>
-                                </div>
-                                <div class="form-group col-md-4">
-                                    <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Connex Dialler Campaign" @bind-Value="parentCampaignRequest.ConnexDiallerCampaignId"
-                                               Required="true" RequiredError="Please select a dialler campaign" Variant="Variant.Outlined"
-                                               SelectedValuesChanged="@(EventCallback.Factory.Create<IEnumerable<int>>(this, OnConnexDiallerCampaignChanged))">
-                                        @foreach (var campaign in connexDiallerCampaigns)
-                                        {
-                                            <MudSelectItem T="int" Value="campaign.Id">@campaign.Name</MudSelectItem>
-                                        }
-                                    </MudSelect>
-                                </div>
-                                <div class="form-group col-md-4">
-                                    <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Connex Dialler Source" @bind-Value="parentCampaignRequest.ConnexDiallerSourceId" Required="true" RequiredError="Please select a dialler source" Variant="Variant.Outlined">
+                            </div>
+                            <div class="form-group col-md-4">
+                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Connex Dialler Source" @bind-Value="parentCampaignRequest.ConnexDiallerSourceId" Required="true" RequiredError="Please select a dialler source" Variant="Variant.Outlined">
                                     @foreach (var source in connexDiallerSources)
                                     {
                                         <MudSelectItem T="int" Value="source.Id">@source.Name</MudSelectItem>
                                     }
                                 </MudSelect>
-                                </div>
-                                </div>
-                            </MudExpansionPanel>
-
-                            <!-- Channel and Source Details Section -->
-                            <MudExpansionPanel Text="Channel and Source Details">
-                                <div class="form-row">
-                                    <div class="form-group col-md-4">
-                                <MudSelect  AnchorOrigin="Origin.BottomCenter" T="int" Label="Channel" @bind-Value="parentCampaignRequest.ChannelId" Required="true" RequiredError="Please select a channel" Variant="Variant.Outlined">
-                                    @foreach (var channel in channels)
-                                    {
-                                        <MudSelectItem Value="@channel.Id">@channel.Name</MudSelectItem>
-                                    }
-                                </MudSelect>
-                                </div>
-                                <div class="form-group col-md-4">
-                                    <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Source" @bind-Value="parentCampaignRequest.SourceId" Required="true" RequiredError="Please select a source" Variant="Variant.Outlined">
-                                    @foreach (var source in sources)
-                                    {
-                                        <MudSelectItem Value="@source.Id">@source.Name</MudSelectItem>
-                                    }
-                                </MudSelect>
-                                </div>
-                                <div class="form-group col-md-4">
-                                    <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Source Break" @bind-Value="parentCampaignRequest.SourceBreakId" Required="true" RequiredError="Please select a source break" Variant="Variant.Outlined">
-                                    @foreach (var sourceBreak in sourceBreaks)
-                                    {
-                                        <MudSelectItem Value="@sourceBreak.Id">@sourceBreak.Name</MudSelectItem>
-                                    }
-                                </MudSelect>
-                                </div>
-                                </div>
-                            </MudExpansionPanel>
-
-                            <!-- Media and Publication Details Section -->
-                            <MudExpansionPanel Text="Media and Publication Details">
-                                <div class="form-row">
-                                    <div class="form-group col-md-6">
-                                    <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Campaign Type" @bind-Value="parentCampaignRequest.CampaignId" Required="true" RequiredError="Please select a campaign type" Variant="Variant.Outlined">
-                                    @foreach (var campaign in campaigns)
-                                    {
-                                        <MudSelectItem Value="@campaign.Id">@campaign.Name</MudSelectItem>
-                                    }
-                                </MudSelect>
-                                </div>
-                                <div class="form-group col-md-6">
-                                    <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Media" @bind-Value="parentCampaignRequest.MediaId" Required="true" RequiredError="Please select a media type" Variant="Variant.Outlined">
-                                    @foreach (var media in mediaTypes)
-                                    {
-                                        <MudSelectItem Value="@media.Id">@media.Name</MudSelectItem>
-                                    }
-                                </MudSelect>
-                                </div>
-                                <div class="form-group col-md-6">
-                                    <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Publication Owner" @bind-Value="parentCampaignRequest.PublicationOwnerId" Required="true" RequiredError="Please select a publication owner" Variant="Variant.Outlined">
-                                    @foreach (var publicationOwner in publicationOwners)
-                                    {
-                                        <MudSelectItem Value="@publicationOwner.Id">@publicationOwner.Name</MudSelectItem>
-                                    }
-                                </MudSelect>
-                                </div>
-                                <div class="form-group col-md-6">
-                                   @*  <MudAutocomplete 
-                                        T="Publication" 
-                                        Label="Publication"
-                                        @bind-Value="selectedPublication" 
-                                        SearchFunc="@Search" 
-                                        ToStringFunc="@(p=>p.Name ?? string.Empty)" /> *@
-
-                                    <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Publication" @bind-Value="parentCampaignRequest.PublicationId" Required="true" RequiredError="Please select a publication" Variant="Variant.Outlined">
-                                    @foreach (var publication in publications)
-                                    {
-                                        <MudSelectItem Value="@publication.Id">@publication.Name</MudSelectItem>
-                                    }
-                                </MudSelect>
-                                </div>
-                                <div class="form-group col-md-6">
-                                    <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Slot" @bind-Value="parentCampaignRequest.SlotId" Required="true" RequiredError="Please select a slot" Variant="Variant.Outlined">
-                                    @foreach (var slot in slots)
-                                    {
-                                        <MudSelectItem Value="@slot.Id">@slot.Name</MudSelectItem>
-                                    }
-                                </MudSelect>
-                                </div>
-                                <div class="form-group col-md-6">
-                                <MudItem>
-                            <MudDateRangePicker PickerVariant="PickerVariant.Dialog" Variant="Variant.Outlined" Label="Select Date Range" @bind-DateRange="DateRangeCR" InputClass="w-full rounded-md border-gray-200 bg-gray-50 border-2" Required="true" />
-                        </MudItem>
+                            </div>
                         </div>
-                                </div>
-                            </MudExpansionPanel>
-                        </MudExpansionPanels>
+                    </MudExpansionPanel>
 
-                        <!-- Date Range Picker -->
-                    <MudCardActions Class="justify-content-center">
-                        
-                        <MudButton Color="Color.Warning" Variant="Variant.Filled" OnClick="OnSubmit">Request Campaign</MudButton>
-                        
-                    </MudCardActions>
-                    </MudCardContent>
+                    <!-- Channel and Source Details Section -->
+                    <MudExpansionPanel Text="Channel and Source Details">
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <MudAutocomplete T="Channel"
+                                                 Label="Channel"
+                                                 @bind-Value="SelectedChannel"
+                                                 SearchFunc="@(async (searchString, token) => await SearchChannels(searchString, token))"
+                                                 ToStringFunc="@(c => c == null ? string.Empty : c.Name)"
+                                                 MaxItems="1000"
+                                                 AnchorOrigin="Origin.BottomCenter"
+                                                 Variant="Variant.Outlined"
+                                                 Required="true" />
+                            </div>
+                            <div class="form-group col-md-4">
+                                <MudAutocomplete T="Source"
+                                                 Label="Source"
+                                                 @bind-Value="SelectedSource"
+                                                 SearchFunc="@(async (searchString, token) => await SearchSources(searchString, token))"
+                                                 ToStringFunc="@(s => s == null ? string.Empty : s.Name)"
+                                                 MaxItems="1000"
+                                                 AnchorOrigin="Origin.BottomCenter"
+                                                 Variant="Variant.Outlined"
+                                                 Required="true" />
+                            </div>
+                            <div class="form-group col-md-4">
+                                <MudAutocomplete T="SourceBreak"
+                                                 Label="Source Break"
+                                                 @bind-Value="SelectedSourceBreak"
+                                                 SearchFunc="@(async (searchString, token) => await SearchSourceBreaks(searchString, token))"
+                                                 ToStringFunc="@(s => s == null ? string.Empty : s.Name)"
+                                                 MaxItems="1000"
+                                                 AnchorOrigin="Origin.BottomCenter"
+                                                 Variant="Variant.Outlined"
+                                                 Required="true" />
+                            </div>
+                        </div>
+                    </MudExpansionPanel>
 
-            </MudForm>
+                    <!-- Media and Publication Details Section -->
+                    <MudExpansionPanel Text="Media and Publication Details">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <MudAutocomplete T="Campaign"
+                                                 Label="Campaign"
+                                                 @bind-Value="SelectedCampaign"
+                                                 SearchFunc="@(async (searchString, token) => await SearchCampaigns(searchString, token))"
+                                                 ToStringFunc="@(c => c == null ? string.Empty : c.Name)"
+                                                 MaxItems="1000"
+                                                 AnchorOrigin="Origin.BottomCenter"
+                                                 Variant="Variant.Outlined"
+                                                 Required="true" />
+                            </div>
+                            <div class="form-group col-md-6">
+                                <MudAutocomplete T="Media"
+                                                 Label="Media Type"
+                                                 @bind-Value="SelectedMedia"
+                                                 SearchFunc="@(async (searchString, token) => await SearchMediaTypes(searchString, token))"
+                                                 ToStringFunc="@(m => m == null ? string.Empty : m.Name)"
+                                                 MaxItems="1000"
+                                                 AnchorOrigin="Origin.BottomCenter"
+                                                 Variant="Variant.Outlined"
+                                                 Required="true" />
+                            </div>
+                            <div class="form-group col-md-6">
+                                <MudAutocomplete T="PublicationOwner"
+                                                 Label="Publication Owner"
+                                                 @bind-Value="SelectedPublicationOwner"
+                                                 SearchFunc="@(async (searchString, token) => await SearchPublicationOwners(searchString, token))"
+                                                 ToStringFunc="@(p => p == null ? string.Empty : p.Name)"
+                                                 MaxItems="1000"
+                                                 AnchorOrigin="Origin.BottomCenter"
+                                                 Variant="Variant.Outlined"
+                                                 Required="true" />
+                            </div>
+                            <div class="form-group col-md-6">
+                                <MudAutocomplete T="Publication"
+                                                 Label="Publication"
+                                                 @bind-Value="SelectedPublication"
+                                                 SearchFunc="@(async (searchString, token) => await SearchPublications(searchString, token))"
+                                                 ToStringFunc="@(p => p == null ? string.Empty : p.Name)"
+                                                 MaxItems="1000"
+                                                 AnchorOrigin="Origin.BottomCenter"
+                                                 Variant="Variant.Outlined"
+                                                 Required="true" />
+                            </div>
+                            <div class="form-group col-md-6">
+
+                                <MudAutocomplete T="Slot"
+                                                 Label="Slot"
+                                                 @bind-Value="SelectedSlot"
+                                                 SearchFunc="@(async (searchString, token) => await SearchSlots(searchString, token))"
+                                                 ToStringFunc="@(s => s == null ? string.Empty : s.Name)"
+                                                 MaxItems="1000"
+                                                 AnchorOrigin="Origin.BottomCenter"
+                                                 Variant="Variant.Outlined"
+                                                 Required="true" />
+
+                            </div>
+                            <div class="form-group col-md-6">
+                                <MudItem>
+                                    <MudDateRangePicker PickerVariant="PickerVariant.Dialog" Variant="Variant.Outlined" Label="Select Date Range" @bind-DateRange="DateRangeCR" InputClass="w-full rounded-md border-gray-200 bg-gray-50 border-2" Required="true" />
+                                </MudItem>
+                            </div>
+                        </div>
+                    </MudExpansionPanel>
+                </MudExpansionPanels>
+
+                <!-- Date Range Picker -->
+                <MudCardActions Class="justify-content-center">
+
+                    <MudButton Color="Color.Warning" Variant="Variant.Filled" OnClick="OnSubmit">Request Campaign</MudButton>
+
+                </MudCardActions>
+            </MudCardContent>
+
+        </MudForm>
         @* </div> *@
-        
+
 
     </Authorized>
     <NotAuthorized>
@@ -214,28 +246,44 @@
     </NotAuthorized>
 </AuthorizeView>
 @code {
-    private Publication selectedPublication { get; set; } = new();
+    private Publication SelectedPublication { get; set; } = new();
+    private PublicationOwner SelectedPublicationOwner { get; set; } = new();
+    private Slot SelectedSlot { get; set; } = new();
+    private Media SelectedMedia { get; set; } = new();
+    private Channel SelectedChannel { get; set; } = new();
+    private Source SelectedSource { get; set; } = new();
+    private SourceBreak SelectedSourceBreak { get; set; } = new();
+    private BusinessUnit SelectedBusinessUnit { get; set; } = new();
+    private CommunicationType SelectedCommunicationType { get; set; } = new();
+    private ConnexDiallerCampaign SelectedConnexDiallerCampaign { get; set; } = new();
+    private ConnexDiallerSource SelectedConnexDiallerSource { get; set; } = new();
+    private BrokerCode SelectedBrokerCode { get; set; } = new();
+    private Campaign SelectedCampaign { get; set; } = new();
+    private PackType SelectedPackType { get; set; } = new();
+    private Brand SelectedBrand { get; set; } = new();
+
+
     private string value1;
     private MudForm form1;
     private CampaignRequestDTO parentCampaignRequest = new();
     private string selectedBrand;
     private string selectedBrokerCode;
-    private List<Campaign> campaigns = new();
-    private List<PackType> packTypes = new();
-    private List<Channel> channels = new();
-    private List<Brand> brands = new();
-    private List<Media> mediaTypes = new();
-    private List<Slot> slots = new();
-    private List<Source> sources = new();
-    private List<BusinessUnit> businessUnits = new();
-    private List<SourceBreak> sourceBreaks = new();
-    private List<Publication> publications = new();
-    private List<PublicationOwner> publicationOwners = new();
+    private IEnumerable<Campaign> campaigns = [];
+    private IEnumerable<PackType> packTypes = [];
+    private IEnumerable<Channel> channels = [];
+    private IEnumerable<Brand> brands = [];
+    private IEnumerable<Media> mediaTypes = [];
+    private IEnumerable<Slot> slots = [];
+    private IEnumerable<Source> sources = [];
+    private IEnumerable<BusinessUnit> businessUnits = [];
+    private IEnumerable<SourceBreak> sourceBreaks = [];
+    private IEnumerable<Publication> publications = [];
+    private IEnumerable<PublicationOwner> publicationOwners = [];
     private ApplicationUser Requester { get; set; }
-    private List<CommunicationType> communicationTypes = new();
-    private List<ConnexDiallerCampaign> connexDiallerCampaigns = new();
-    private List<ConnexDiallerSource> connexDiallerSources = new();
-    private List<BrokerCode> brokerCodes = new();
+    private IEnumerable<CommunicationType> communicationTypes = [];
+    private IEnumerable<ConnexDiallerCampaign> connexDiallerCampaigns = [];
+    private IEnumerable<ConnexDiallerSource> connexDiallerSources = [];
+    private IEnumerable<BrokerCode> brokerCodes = [];
     private DateRange _dateRangeCR;
     private DateRange DateRangeCR
     {
@@ -250,12 +298,7 @@
             }
         }
     }
-    private async Task<IEnumerable<Publication>> Search1(string value, CancellationToken token)
-    {
-        if (string.IsNullOrEmpty(value))
-            return publications;
-        return publications.Where(x => x is not null && x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase));
-    }
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -314,22 +357,22 @@
                     {
                         SysAidLog = parentCampaignRequest.SysAidLog,
                         Description = parentCampaignRequest.Description,
-                        CampaignId = parentCampaignRequest.CampaignId,
-                        CommunicationTypeId = parentCampaignRequest.CommunicationTypeId,
-                        BusinessUnitId = parentCampaignRequest.BusinessUnitId,
-                        CampaignRequestBrands = parentCampaignRequest.CampaignRequestBrands,
+                        CampaignId = SelectedCampaign.Id,
+                        CommunicationTypeId = SelectedCommunicationType.Id,
+                        BusinessUnitId = SelectedBusinessUnit.Id,
+                        CampaignRequestBrands = SelectedBrand.Name,
                         SmsNumber = null,
                         SharecallNumber = null,
-                        ChannelId = parentCampaignRequest.ChannelId,
-                        SourceId = parentCampaignRequest.SourceId,
-                        SourceBreakId = parentCampaignRequest.SourceBreakId,
+                        ChannelId = SelectedChannel.Id,
+                        SourceId = SelectedSource.Id,
+                        SourceBreakId = SelectedSourceBreak.Id,
                         ConnexDiallerCampaignId = parentCampaignRequest.ConnexDiallerCampaignId,
                         ConnexDiallerSourceId = parentCampaignRequest.ConnexDiallerSourceId,
-                        SlotId = parentCampaignRequest.SlotId,
-                        MediaId = parentCampaignRequest.MediaId,
-                        PublicationOwnerId = parentCampaignRequest.PublicationOwnerId,
-                        PublicationId = parentCampaignRequest.PublicationId,
-                        CampaignBrokerCodes = parentCampaignRequest.CampaignBrokerCodes,
+                        SlotId = SelectedSlot.Id,
+                        MediaId = SelectedMedia.Id,
+                        PublicationOwnerId = SelectedPublicationOwner.Id,
+                        PublicationId = SelectedPublication.Id,
+                        CampaignBrokerCodes = SelectedBrokerCode.Code,
                         StartDate = parentCampaignRequest.StartDate,
                         EndDate = parentCampaignRequest.EndDate,
                         IsActive = false,
@@ -346,6 +389,7 @@
                 await context.SaveChangesAsync();
                 Snackbar.Add("Campaign Request created successfully!", Severity.Success);
                 parentCampaignRequest = new();
+                NavigationManager.NavigateTo("/requester-dashboard");
             }
         }
         else
@@ -354,16 +398,78 @@
         }
     }
 
-    private Task<List<Publication>> Search(string searchString, CancellationToken cancellationToken)
+
+    private Task<IEnumerable<Publication>> SearchPublications(string searchString, CancellationToken token)
+    {
+        return Search(publications, searchString, p => p.Name);
+    }
+    private Task<IEnumerable<PublicationOwner>> SearchPublicationOwners(string searchString, CancellationToken token)
+    {
+        return Search(publicationOwners, searchString, p => p.Name);
+    }
+    private Task<IEnumerable<Slot>> SearchSlots(string searchString, CancellationToken token)
+    {
+        return Search(slots, searchString, s => s.Name);
+    }
+    private Task<IEnumerable<Media>> SearchMediaTypes(string searchString, CancellationToken token)
+    {
+        return Search(mediaTypes, searchString, m => m.Name);
+    }
+    private Task<IEnumerable<Channel>> SearchChannels(string searchString, CancellationToken token)
+    {
+        return Search(channels, searchString, c => c.Name);
+    }
+    private Task<IEnumerable<Source>> SearchSources(string searchString, CancellationToken token)
+    {
+        return Search(sources, searchString, s => s.Name);
+    }
+    private Task<IEnumerable<SourceBreak>> SearchSourceBreaks(string searchString, CancellationToken token)
+    {
+        return Search(sourceBreaks, searchString, s => s.Name);
+    }
+    private Task<IEnumerable<BusinessUnit>> SearchBusinessUnits(string searchString, CancellationToken token)
+    {
+        return Search(businessUnits, searchString, b => b.UnitName);
+    }
+    private Task<IEnumerable<CommunicationType>> SearchCommunicationTypes(string searchString, CancellationToken token)
+    {
+        return Search(communicationTypes, searchString, c => c.Name);
+    }
+    private Task<IEnumerable<ConnexDiallerCampaign>> SearchConnexDiallerCampaigns(string searchString, CancellationToken token)
+    {
+        return Search(connexDiallerCampaigns, searchString, c => c.Name);
+    }
+    private Task<IEnumerable<ConnexDiallerSource>> SearchConnexDiallerSources(string searchString, CancellationToken token)
+    {
+        return Search(connexDiallerSources, searchString, c => c.Name);
+    }
+    private Task<IEnumerable<BrokerCode>> SearchBrokerCodes(string searchString, CancellationToken token)
+    {
+        return Search(brokerCodes, searchString, b => b.Code);
+    }
+    private Task<IEnumerable<Campaign>> SearchCampaigns(string searchString, CancellationToken token)
+    {
+        return Search(campaigns, searchString, c => c.Name);
+    }
+    private Task<IEnumerable<PackType>> SearchPackTypes(string searchString, CancellationToken token)
+    {
+        return Search(packTypes, searchString, p => p.Type);
+    }
+    private Task<IEnumerable<Brand>> SearchBrands(string searchString, CancellationToken token)
+    {
+        return Search(brands, searchString, b => b.Name);
+    }
+    private Task<IEnumerable<T>> Search<T>(IEnumerable<T> items, string searchString, Func<T, string> selector)
     {
         if (string.IsNullOrWhiteSpace(searchString))
         {
-            return Task.FromResult(publications);
+            return Task.FromResult(items);
         }
-        var filteredPublications = publications
-        .Where(p => p.Name.StartsWith(searchString, StringComparison.OrdinalIgnoreCase))
-        .OrderBy(publication => publication.Name)
-        .ToList();
-        return Task.FromResult<List<Publication>>(filteredPublications);
+        var filteredItems = items
+            .Where(item => selector(item).Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(selector)
+            .ToList();
+        return Task.FromResult<IEnumerable<T>>(filteredItems);
     }
+
 }
