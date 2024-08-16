@@ -3,72 +3,73 @@
 @using OCD.Components
 @using OCD.Data
 @using OCD.Models
+@using OCD.Services
 @inject NavigationManager NavigationManager
 @inject IDbContextFactory<DataContext> DbContextFactory
 @inject IDialogService DialogService
 
 <AuthorizeView Roles="Requester">
     <Authorized>
-        
-            <MudText Typo="Typo.h6">
-                Comments for Campaign: @CampaignRequest.Description
-                
-            </MudText>
-            <MudDataGrid Class="shadow-md rounded-lg border grid mt-7"
-                         Items="@Comments"
-                         HorizontalScrollbar="false"
-                         Hover="true"
-                         Striped="true"
-                         RowsPerPageOptions="new int[] { 10, 25, 50, 100 }"
-                         FixedHeader="true"
-                         Height="65vh"
-                         RowsPerPage="10"
-                         Style="background-color:white;">
 
-                <ToolBarContent>
-                    <MudSpacer />
-                </ToolBarContent>
-                <Columns>
-                    <PropertyColumn Property="x => x.DateCreated.Date.ToShortDateString()" Title="Date Created" HeaderStyle="white-space:nowrap" />
-                    <PropertyColumn Property="x => x.CommentText" Title="Comment" />
-                    <TemplateColumn Title="From" HeaderStyle="white-space:nowrap">
-                        <CellTemplate Context="_context">
-                            <MudStack Row>
+        <MudText Typo="Typo.h6">
+            Comments for Campaign: @CampaignRequest.Description
+
+        </MudText>
+        <MudDataGrid Class="shadow-md rounded-lg border grid mt-7"
+                     Items="@Comments"
+                     HorizontalScrollbar="false"
+                     Hover="true"
+                     Striped="true"
+                     RowsPerPageOptions="new int[] { 10, 25, 50, 100 }"
+                     FixedHeader="true"
+                     Height="65vh"
+                     RowsPerPage="10"
+                     Style="background-color:white;">
+
+            <ToolBarContent>
+                <MudSpacer />
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.DateCreated.Date.ToShortDateString()" Title="Date Created" HeaderStyle="white-space:nowrap" />
+                <PropertyColumn Property="x => x.CommentText" Title="Comment" />
+                <TemplateColumn Title="From" HeaderStyle="white-space:nowrap">
+                    <CellTemplate Context="_context">
+                        <MudStack Row>
                             <MudText Style="font-size:14px">@_context.Item.Commenter.Name @_context.Item.Commenter.Surname</MudText>
-                            </MudStack>
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <TemplateColumn Title="Has Been Viewed?">
-                        <CellTemplate Context="_context">
-                            <MudChip Color="@(_context.Item.IsViewed ? Color.Success : Color.Secondary)">
-                                @(_context.Item.IsViewed ? "Yes" : "No")
-                            </MudChip>
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <TemplateColumn Title="Is Issue">
-                        <CellTemplate Context="_context">
-                            <MudChip Color="@(_context.Item.IsIssue ? Color.Success : Color.Secondary)">
-                                @(_context.Item.IsIssue ? "Yes" : "No")
-                            </MudChip>
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <TemplateColumn Title="Has Been Resolved?">
-                        <CellTemplate Context="_context">
-                            <MudChip Color="@(_context.Item.IsResolved ? Color.Success : Color.Secondary)">
-                                @(_context.Item.IsResolved ? "Yes" : "No")
-                            </MudChip>
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <TemplateColumn Title="Actions">
-                        <CellTemplate Context="_context">
-                            <MudButton Color="Color.Primary" OnClick="async () => ResolveCommentModal(_context.Item.Id)">
-                                Mark as Resolved
-                            </MudButton>
-                        </CellTemplate>
-                    </TemplateColumn>
-                </Columns>
-            </MudDataGrid>
-       
+                        </MudStack>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="Has Been Viewed?">
+                    <CellTemplate Context="_context">
+                        <MudChip Color="@(_context.Item.IsViewed ? Color.Success : Color.Secondary)">
+                            @(_context.Item.IsViewed ? "Yes" : "No")
+                        </MudChip>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="Is Issue">
+                    <CellTemplate Context="_context">
+                        <MudChip Color="@(_context.Item.IsIssue ? Color.Success : Color.Secondary)">
+                            @(_context.Item.IsIssue ? "Yes" : "No")
+                        </MudChip>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="Has Been Resolved?">
+                    <CellTemplate Context="_context">
+                        <MudChip Color="@(_context.Item.IsResolved ? Color.Success : Color.Secondary)">
+                            @(_context.Item.IsResolved ? "Yes" : "No")
+                        </MudChip>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="Actions">
+                    <CellTemplate Context="_context">
+                        <MudButton Color="Color.Primary" OnClick="async () => ResolveCommentModal(_context.Item.Id)">
+                            Mark as Resolved
+                        </MudButton>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+        </MudDataGrid>
+
     </Authorized>
     <NotAuthorized>
         <MudAlert Severity="Severity.Error">You are not authorized to view this page.</MudAlert>
@@ -100,11 +101,11 @@
               .ToListAsync();
 
             var request = await context.CampaignRequests
-            .Where(x => x.Id == CampaignId)
-            .AsNoTracking()
-            .FirstOrDefaultAsync();
+                .Where(x => x.Id == CampaignId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
 
-            if(request != null)
+            if (request != null)
             {
                 CampaignRequest = request;
             }
@@ -117,11 +118,17 @@
                 .Where(c => c.CampaignRequestId == CampaignId && !c.IsViewed)
                 .CountAsync();
 
-            // TODO: mark all comments as viewed for this requester
-            // await context.Comments
-            //    .Where(c => c.CampaignRequestId == CampaignId && !c.IsViewed)
-            //    .ForEachAsync(c => c.IsViewed = true);
-            // await context.SaveChangesAsync();
+            var commentsToMark = await context.Comments
+                .Where(c => c.CampaignRequestId == CampaignId && !c.IsViewed)
+                .ToListAsync();
+
+            foreach (var comment in commentsToMark)
+            {
+                comment.IsViewed = true;
+            }
+             await context.SaveChangesAsync();
+
+            
         }
     }
 
@@ -135,7 +142,7 @@
         CommentId = commentId;
         var parameters = new DialogParameters
         {
-            { "CommentId", CommentId } 
+            { "CommentId", CommentId }
         };
         var options = new DialogOptions() { MaxWidth = MaxWidth.Medium };
         DialogService.Show<ResolveCommentDialog>("Resolve Comment", parameters, options);
