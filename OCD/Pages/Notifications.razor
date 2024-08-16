@@ -1,0 +1,61 @@
+﻿@page "/notifications"
+@using Microsoft.EntityFrameworkCore
+@using OCD.Data
+@inject IDbContextFactory<DataContext> DbContextFactory
+@inject NavigationManager NavigationManager
+
+
+<MudText Typo="Typo.h6">Notifications</MudText>
+
+@if (CampaignsWithNewComments.Any())
+{
+    <MudDataGrid Items="@CampaignsWithNewComments">
+        <Columns>
+            <PropertyColumn Property="c => c.CampaignName" Title="Campaign Name" />
+            <PropertyColumn Property="c => c.NewCommentsCount" Title="New Comments" />
+            <TemplateColumn Title="Actions">
+                <CellTemplate Context="context">
+                    <MudButton OnClick="@(async () => await NavigateToCommentsPage(context.Item.Id))">
+                        View Comments
+                    </MudButton>
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+    </MudDataGrid>
+}
+else
+{
+    <MudText>You have no new comments.</MudText>
+}
+
+@code {
+
+    private List<CampaignNotification> CampaignsWithNewComments { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbContextFactory.CreateDbContextAsync();
+        CampaignsWithNewComments = await context.CampaignRequests
+            .Where(c => c.Comments.Any(comment => !comment.IsViewed))
+            .Select(c => new CampaignNotification
+                {
+                    Id = c.Id,
+                    CampaignName = c.Description!,
+                    NewCommentsCount = c.Comments.Count(comment => !comment.IsViewed)
+                })
+            .ToListAsync();
+    }
+
+
+    private Task NavigateToCommentsPage(int campaignId)
+    {
+        NavigationManager.NavigateTo($"/requester-comments/{campaignId}");
+        return Task.CompletedTask;
+    }
+    public class CampaignNotification
+    {
+        public int Id { get; set; }
+        public string CampaignName { get; set; }
+        public int NewCommentsCount { get; set; }
+    }
+}
