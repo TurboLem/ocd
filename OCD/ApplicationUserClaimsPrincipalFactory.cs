@@ -18,6 +18,8 @@ namespace OCD
             var identity = await base.GenerateClaimsAsync(user);
             identity.AddClaim(new Claim(ClaimTypes.GivenName, user.Name ?? string.Empty));
             identity.AddClaim(new Claim(ClaimTypes.Surname, user.Surname ?? string.Empty));
+            identity.AddClaim(new Claim(ClaimTypes.Email, user.Email ?? string.Empty));
+            identity.AddClaim(new Claim(ClaimTypes.MobilePhone, user.MobileNumber ?? string.Empty));
             var roles = await UserManager.GetRolesAsync(user);
             foreach (var role in roles.Distinct())
             {
