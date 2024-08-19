@@ -39,6 +39,7 @@ namespace OCD.Models
         public string? ActionedBy { get; set; }
         public DateTime? ActionedDate { get; set; }
         public DateTime RequestedDate { get; set; }
+        public bool IsConfirmedByRequester { get; set; }
 
         [ForeignKey("RequesterId")]
         public virtual ApplicationUser Requester { get; set; }
