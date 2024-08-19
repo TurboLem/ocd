@@ -55,7 +55,8 @@ builder.Services.AddScoped<ICampaignRequestService, CampaignRequestService>();
 builder.Services.AddScoped<OCD.Services.IRoleRedirectService, OCD.Services.RoleRedirectService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddHttpClient<ITestVDNService, TestVDNService>();
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<ITestVDNService, TestVDNService>();
 
 
 
