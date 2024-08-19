@@ -1,0 +1,77 @@
+﻿@using OCD.Services
+@using OCD.Services.CampaignRequestService
+@using OCD.Services.TestVDNService
+@using System.Security.Claims
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject ICampaignRequestService CampaignRequestService
+@inject IEmailService EmailService
+@inject ITestVDNService TestVDNService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+<MudDialog>
+    <DialogContent>
+        <MudForm @bind-IsValid="isValid" @ref="form">
+            <MudTextField @bind-Value="Vdn" Label="VDN" Variant="Variant.Outlined" Disabled="true"/>
+            <MudTextField @bind-Value="FullName" Label="Name & Surname" Variant="Variant.Outlined" Disabled="true"/>
+            <MudTextField @bind-Value="PhoneNum" Label="Phone Number" Variant="Variant.Outlined" Disabled="true" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Warning" Disabled="!isValid" OnClick="SendRequest">Submit</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    private MudForm form = default!;
+    private bool isValid;
+    [CascadingParameter]
+    private MudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter]
+    public string Vdn { get; set; } = string.Empty;
+    private string FullName { get; set; } = string.Empty;
+    private string PhoneNum { get; set; } = string.Empty;
+    private string Name { get; set; } = string.Empty;
+    private string Surname { get; set; } = string.Empty;  
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var name = user.FindFirst(ClaimTypes.GivenName)?.Value;
+        var surname = user.FindFirst(ClaimTypes.Surname)?.Value;
+        var phoneNumber = user.FindFirst(ClaimTypes.MobilePhone)?.Value;
+        FullName = $"{name} {surname}";
+        PhoneNum = phoneNumber!;
+        Name = name!;
+        Surname = surname!;
+    }
+    private async Task SendRequest()
+    {
+        if (form.IsValid)
+        {
+            var requestToSend = new Models.TestVDN
+                {
+                    FirstName = Name,
+                    Surname = Surname,
+                    MobileNumber = PhoneNum,
+                    VDN = Vdn
+                };
+            var result = await TestVDNService.SendRequest(requestToSend);
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Request sent successfully", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+                NavigationManager.NavigateTo("/requster-dashboard"); // TODO: navigate based on user role
+            }
+            else
+            {
+                Snackbar.Add($"Failed to send request", Severity.Error);
+            }
+        } 
+    }
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+}
