@@ -14,12 +14,12 @@ namespace OCD.Services.TestVDNService
             _configuration = configuration;
         }
 
-        public async Task<string> SendRequest(TestVDN testVDN)
+        public async Task<SendRequestResult> SendRequest(TestVDN testVDN)
         {
 
             var username = _configuration["ContactAPI:Username"];
             var password = _configuration["CONTACT_API_PASSWORD"] ?? _configuration["ContactAPI:Password"];
-           
+
 
             var soapEnvelope = $@"<?xml version=""1.0"" encoding=""utf-8""?>
         <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
@@ -47,17 +47,30 @@ namespace OCD.Services.TestVDNService
 
             var response = await client.PostAsync(_configuration["ContactAPI:Url"], content);
 
-            response.EnsureSuccessStatusCode();
+            var result = new SendRequestResult
+            {
+                ResponseContent = await response.Content.ReadAsStringAsync()
+            };
 
-            var responseContent = await response.Content.ReadAsStringAsync();
-
-
-           return responseContent;
+            if (response.IsSuccessStatusCode)
+            {
+                result.IsSuccess = true;
+            }
+            else
+            {
+                result.IsSuccess = false;
+            }
+            return result;
         }
 
         public Task<VDNTestResponse> VDNTestResponse()
         {
             throw new NotImplementedException();
         }
+    }
+    public class SendRequestResult
+    {
+        public bool IsSuccess { get; set; }
+        public string ResponseContent { get; set; } = string.Empty;
     }
 }
