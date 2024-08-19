@@ -88,23 +88,27 @@
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = await DbContextFactory.CreateDbContextAsync();
-        var users = await context.Users.Where(x => x.IsActive == false).AsNoTracking().ToListAsync();
-        var usersWithRoles = new List<UserWithRole>();
-
-        foreach (var user in users)
+        using (var context = await DbContextFactory.CreateDbContextAsync())
         {
-            var roles = await UserManager.GetRolesAsync(user);
-            var roleName = roles.FirstOrDefault() ?? string.Empty;
-            usersWithRoles.Add(new UserWithRole
-                {
-                    User = user,
-                    Role = roleName
-                });
-        }
+            
+            var users = await context.Users.Where(x => x.IsActive == false).AsNoTracking().ToListAsync();
+            var usersWithRoles = new List<UserWithRole>();
 
-        PendingUsers = usersWithRoles;
-        CurrentUserAccessRequests = PendingUsers.Count();
+            foreach (var user in users)
+            {
+                var roles = await UserManager.GetRolesAsync(user);
+                var roleName = roles.FirstOrDefault() ?? string.Empty;
+                usersWithRoles.Add(new UserWithRole
+                    {
+                        User = user,
+                        Role = roleName
+                    });
+            }
+
+            PendingUsers = usersWithRoles;
+            CurrentUserAccessRequests = PendingUsers.Count();
+        };
+       
     }
     private async Task ActivateAccount(ApplicationUser user)
 
