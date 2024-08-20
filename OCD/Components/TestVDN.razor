@@ -61,8 +61,7 @@
             {
                 Snackbar.Add("Request sent successfully", Severity.Success);
                 MudDialog.Close(DialogResult.Ok(true));
-                NavigationManager.NavigateTo("/requster-dashboard"); // TODO: navigate based on user role
-            }
+              }
             else
             {
                 Snackbar.Add($"Failed to send request", Severity.Error);
