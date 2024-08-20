@@ -64,7 +64,8 @@
               }
             else
             {
-                Snackbar.Add($"Failed to send request", Severity.Error);
+                var errorMessage = $"Failed to send request. Error Status: {result.ErrorStatus}, Description: {result.ErrorDescription}";
+                Snackbar.Add(errorMessage, Severity.Error);
             }
         } 
     }
