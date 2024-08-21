@@ -18,23 +18,23 @@ namespace OCD.Areas.Identity.Pages.Account
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IEmailService _emailService;
+        private readonly DataContext _context;
 
-        public RegisterModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, RoleManager<IdentityRole> roleManager, IEmailService emailService)
+        public RegisterModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, RoleManager<IdentityRole> roleManager, IEmailService emailService, DataContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _emailService = emailService;
+            _context = context;
         }
         public async Task OnGetAsync()
         {
            
             Managers = await _userManager.Users.Where(u => u.IsManager == true).ToListAsync();
         }
-
         public async Task<IActionResult> OnPostAsync()
         {
-
             if (ModelState.IsValid)
             {
                 var existingUser = await _userManager.FindByEmailAsync(Input.Email);
@@ -43,49 +43,55 @@ namespace OCD.Areas.Identity.Pages.Account
                     ModelState.AddModelError(string.Empty, $"User with this email {Input.Email} already exists");
                     return Page();
                 }
-                var user = new ApplicationUser
-                {
-                    UserName = Input.Email,
-                    Email = Input.Email,
-                    IsActive = false,
-                    Name = Input.Name,
-                    Surname = Input.Surname,
-                    EmployeeNumber = Input.EmployeeNumber,
-                    MobileNumber = Input.MobileNumber,
-                    IsAdmin = Input.IsAdmin ?? false,
-                    IsManager = Input.IsManager ?? false,
-                    IsOperations = Input.IsOperations ?? false,
-                    ManagerId = Input.ManagerId,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now
 
-                };
-                var result = await _userManager.CreateAsync(user, Input.Password);
-                
-                if (result.Succeeded)
+                using (var transaction = await _context.Database.BeginTransactionAsync())
                 {
-                    await _userManager.AddToRoleAsync(user, Input.SelectedRole);
-                    var message = $"{Input.Name} {Input.Surname} has requested access to OCD as a {Input.SelectedRole}. Please log on to your dashboard to review the request and grant the user access.</p>";
-                    var subject = "Request for access on OCD";
                     try
                     {
-                        await _emailService.SendTestEmail(subject, message);
-                        return new JsonResult(new { success = true, message = "Request for access sent. You will receive an email as soon as access has been granted.", redirectUrl = Url.Page("/account/login") });
+                        var user = new ApplicationUser
+                        {
+                            UserName = Input.Email,
+                            Email = Input.Email,
+                            IsActive = false,
+                            Name = Input.Name,
+                            Surname = Input.Surname,
+                            EmployeeNumber = Input.EmployeeNumber,
+                            MobileNumber = Input.MobileNumber,
+                            IsAdmin = Input.IsAdmin ?? false,
+                            IsManager = Input.IsManager ?? false,
+                            IsOperations = Input.IsOperations ?? false,
+                            ManagerId = Input.ManagerId,
+                            CreatedAt = DateTime.Now,
+                            UpdatedAt = DateTime.Now
+                        };
+
+                        var result = await _userManager.CreateAsync(user, Input.Password);
+
+                        if (result.Succeeded)
+                        {
+                            await _userManager.AddToRoleAsync(user, Input.SelectedRole);
+                            var message = $"{Input.Name} {Input.Surname} has requested access to OCD as a {Input.SelectedRole}. Please log on to your dashboard to review the request and grant the user access.</p>";
+                            var subject = "Request for access on OCD";
+
+                            await _emailService.SendTestEmail(subject, message);
+
+                            await transaction.CommitAsync();
+
+                            return new JsonResult(new { success = true, message = "Request for access sent. You will receive an email as soon as access has been granted.", redirectUrl = Url.Page("/account/login") });
+                        }
+                        else
+                        {
+                            var errors = result.Errors.Select(e => e.Description).ToList();
+                            return new JsonResult(new { success = false, message = string.Join(", ", errors) });
+                        }
                     }
-                    catch (InvalidOperationException ex)
+                    catch (Exception ex)
                     {
-                        // Log the exception (you can use a logging framework like Serilog, NLog, etc.)
-                        Console.WriteLine($"Email sending failed: {ex.Message}");
+                        await transaction.RollbackAsync();
                         ModelState.AddModelError(string.Empty, "Failed to send email. Please check your network connection or contact IT support.");
                         return Page();
                     }
                 }
-                else
-                {
-                    var errors = result.Errors.Select(e => e.Description).ToList();
-                    return new JsonResult(new { success = false, message = string.Join(", ", errors) });
-                }
-
             }
             return Page();
         }
