@@ -3,6 +3,7 @@
 @using OCD.DTOs
 @using OCD.Data
 @using OCD.Models
+@using System.Security.Claims
 @inject IDbContextFactory<DataContext> DbContextFactory
 @inject ISnackbar Snackbar
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -261,10 +262,8 @@
     private Campaign SelectedCampaign { get; set; } = new();
     private PackType SelectedPackType { get; set; } = new();
     private Brand SelectedBrand { get; set; } = new();
-
-
-    private string value1;
-    private MudForm form1;
+    private string userId = string.Empty;
+    private MudForm form1 = default!;
     private CampaignRequestDTO parentCampaignRequest = new();
     private string selectedBrand;
     private string selectedBrokerCode;
@@ -279,7 +278,6 @@
     private IEnumerable<SourceBreak> sourceBreaks = [];
     private IEnumerable<Publication> publications = [];
     private IEnumerable<PublicationOwner> publicationOwners = [];
-    private ApplicationUser Requester { get; set; }
     private IEnumerable<CommunicationType> communicationTypes = [];
     private IEnumerable<ConnexDiallerCampaign> connexDiallerCampaigns = [];
     private IEnumerable<ConnexDiallerSource> connexDiallerSources = [];
@@ -303,6 +301,7 @@
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
+        userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
         using (var context = await DbContextFactory.CreateDbContextAsync())
         {
             campaigns = await context.Campaigns.AsNoTracking().ToListAsync();
@@ -319,7 +318,7 @@
             communicationTypes = await context.CommunicationTypes.AsNoTracking().ToListAsync();
             connexDiallerCampaigns = await context.ConnexDiallerCampaigns.AsNoTracking().ToListAsync();
             brokerCodes = await context.BrokerCodes.AsNoTracking().ToListAsync();
-            Requester = await context.Users.FirstOrDefaultAsync(x => x.Email == user.Identity!.Name) ?? new();
+            
 
         }
         DateRangeCR = new DateRange(parentCampaignRequest.StartDate, parentCampaignRequest.EndDate);
@@ -343,8 +342,6 @@
         parentCampaignRequest.EndDate = newDateRange.End;
 
     }
-
-
 
     private async Task OnSubmit()
     {
@@ -380,9 +377,10 @@
                         TrackingCode = null,
                         CampaignRequestMainId = null,
                         PackTypeId = 1,
-                        RequesterId = Requester.Id, // Get the current logged user's id and add it here
+                        RequesterId = userId, 
                         ActionedBy = null,
                         ActionedDate = null,
+                        IsConfirmedByRequester = false,
                         RequestedDate = DateTime.Now,
                     };
                 context.CampaignRequests.Add(mainCampaignRequest);
