@@ -59,7 +59,7 @@
             var result = await TestVDNService.SendRequest(requestToSend);
             if (result.IsSuccess)
             {
-                Snackbar.Add("Request sent successfully", Severity.Success);
+                Snackbar.Add("Request sent successfully. An agent will contact you.", Severity.Success);
                 MudDialog.Close(DialogResult.Ok(true));
               }
             else
