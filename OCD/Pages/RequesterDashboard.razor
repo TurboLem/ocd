@@ -16,13 +16,13 @@
             <MudChipSet T="Color">
                 <MudChip Color="Color.Primary" Variant="Variant.Filled">@totalCampaignsCount Total</MudChip>
                 <MudChip Color="Color.Success" Variant="Variant.Filled">@activeCampaignsCount Active</MudChip>
-                <MudChip Color="Color.Warning" Variant="Variant.Filled">@inactiveCampaignsCount Inactive</MudChip>
-                <MudChip Color="Color.Secondary" Variant="Variant.Filled">@pendingCampaignsCount pending</MudChip>
+                <MudChip Color="Color.Secondary" Variant="Variant.Filled">@awaitingTestConfirmationCount Awaiting VDN test/confirmation</MudChip>
+                <MudChip Color="Color.Warning" Variant="Variant.Filled">@awaitingActivationCount Awaiting activation</MudChip>
                 <MudChip Color="Color.Error" Variant="Variant.Filled">@unreadCommentsCount Unread Comments</MudChip>
             </MudChipSet>
         </div>
-        <MudTabs ApplyEffectsToContainer="true" @bind-ActivePanelIndex="activeIndex">
-            <MudTabPanel Text="All Campaigns" Icon="@Icons.Material.Filled.Dashboard">
+        <MudTabs ApplyEffectsToContainer="true" @bind-ActivePanelIndex="activeIndex" Centered="true">
+            <MudTabPanel Text="All Campaigns" Icon="@Icons.Material.Filled.ViewList" ToolTip="Your active and inactive campaigns">
 
 
                 <div class="mb-3 d-flex align-items-center">
@@ -54,7 +54,7 @@
                     </ToolBarContent>
                     <Columns>
                         <PropertyColumn Property="x => x.Id" Title="Campaign Id" HeaderStyle="white-space:nowrap" />
-                        <TemplateColumn Title="Owner" HeaderStyle="white-space:nowrap">
+                        <TemplateColumn Title="Owner" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap">
                             <CellTemplate Context="_context">
                                 <MudStack Row>
                                     <MudText Style="font-size:14px">@_context.Item.Requester.Name @_context.Item.Requester.Surname</MudText>
@@ -124,7 +124,7 @@
                     </PagerContent>
                 </MudDataGrid>
             </MudTabPanel>
-            <MudTabPanel Text="My Active Campaigns">
+            <MudTabPanel Icon="@Icons.Material.Filled.Person" Text="My Active Campaigns">
                 <div class="mb-3 d-flex align-items-center">
                 </div>
                 <MudDataGrid Class="shadow-md rounded-lg border grid mt-7"
@@ -151,7 +151,7 @@
                     </ToolBarContent>
                     <Columns>
                         <PropertyColumn Property="x => x.Id" Title="Campaign Id" HeaderStyle="white-space:nowrap" />
-                        <TemplateColumn Title="Owner" HeaderStyle="white-space:nowrap">
+                        <TemplateColumn Title="Owner" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap">
                             <CellTemplate Context="_context">
                                 <MudStack Row>
                                     <MudText Style="font-size:14px">@_context.Item.Requester.Name @_context.Item.Requester.Surname</MudText>
@@ -221,11 +221,11 @@
                     </PagerContent>
                 </MudDataGrid>
             </MudTabPanel>
-            <MudTabPanel Text="My Inactive Campaigns">
+            <MudTabPanel Icon="@Icons.Material.Filled.PendingActions" Text="Awaiting Testing" ToolTip="Requests awaiting testing and confirmation of working VDN">
                 <div class="mb-3 d-flex align-items-center">
                 </div>
                 <MudDataGrid Class="shadow-md rounded-lg border grid mt-7"
-                             Items="@InActiveCampaigns"
+                             Items="@AwaitingTestConfirmation"
                              Hover="true"
                              Striped="true"
                              RowsPerPageOptions="new int[] { 10, 25, 50, 100 }"
@@ -235,7 +235,7 @@
                              Style="background-color:white;"
                              QuickFilter="@_quickFilter">
                     <ToolBarContent>
-                        <MudText Typo="Typo.h6">Inactive Campaigns</MudText>
+                        <MudText Typo="Typo.h6">Awaiting Testing & Confirmation</MudText>
                         <MudSpacer />
                         <div class="col-md-4">
                             <MudTextField @bind-Value="SearchTrackingCode"
@@ -273,7 +273,15 @@
                         @* <PropertyColumn Property="x=> x.PackType.Type" Title="Pack" HeaderStyle="white-space:nowrap" /> *@
                         <PropertyColumn Property="x=> x.Publication.Name" Title="Publication" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
                         <PropertyColumn Property="x=> x.PublicationOwner.Name" Title="Publication Owner" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
-                        <PropertyColumn Property="x=> x.Channel.Name" Title="Channel" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
+                        <PropertyColumn Property="x=> x.Channel.Name" Title="Channel" HeaderStyle="white-space:nowrap" />
+                        @*  <PropertyColumn Property="x=>x.Actioner.Name" Title="Actioner" /> *@
+                        <TemplateColumn Title="Actioned By" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap">
+                            <CellTemplate Context="_context">
+                                <MudStack Row>
+                                    <MudText Style="font-size:14px">@_context.Item.Actioner.Name @_context.Item.Actioner.Surname</MudText>
+                                </MudStack>
+                            </CellTemplate>
+                        </TemplateColumn>
 
                         <PropertyColumn Property="x => x.StartDate!.Value.Date.ToShortDateString()" Title="Start Date" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
                         <PropertyColumn Property="x => x.EndDate!.Value.Date.ToShortDateString()" Title="End Date" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
@@ -318,11 +326,11 @@
                     </PagerContent>
                 </MudDataGrid>
             </MudTabPanel>
-            <MudTabPanel Text="My Pending Campaigns">
+            <MudTabPanel Icon="@Icons.Material.Filled.Pending" Text="Awaiting Activation" ToolTip="Awaiting activation from Ops team">
                 <div class="mb-3 d-flex align-items-center">
                 </div>
                 <MudDataGrid Class="shadow-md rounded-lg border grid mt-7"
-                             Items="@PendingCampaigns"
+                             Items="@AwaitingActivation"
                              Hover="true"
                              Striped="true"
                              RowsPerPageOptions="new int[] { 10, 25, 50, 100 }"
@@ -332,7 +340,7 @@
                              Style="background-color:white;"
                              QuickFilter="@_quickFilter">
                     <ToolBarContent>
-                        <MudText Typo="Typo.h6">Pending Campaigns</MudText>
+                        <MudText Typo="Typo.h6">Awaiting Activation</MudText>
                         <MudSpacer />
                         <div class="col-md-4">
                             <MudTextField @bind-Value="SearchTrackingCode"
@@ -437,6 +445,8 @@
     private int inactiveCampaignsCount;
     private int pendingCampaignsCount;
     private int unreadCommentsCount;
+    private int awaitingActivationCount;
+    private int awaitingTestConfirmationCount;
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
     private IEnumerable<CampaignRequest> Campaigns { get; set; } = [];
@@ -445,6 +455,8 @@
     private IEnumerable<CampaignRequest> InActiveCampaigns { get; set; } = [];
     private IEnumerable<CampaignRequest> PendingCampaigns { get; set; } = [];
     private IEnumerable<CampaignRequest> MyCampaigns { get; set; } = [];
+    private IEnumerable<CampaignRequest> AwaitingActivation { get; set; } = [];
+    private IEnumerable<CampaignRequest> AwaitingTestConfirmation { get; set; } = [];
     private IEnumerable<Comment> Comments { get; set; } = [];
     private int CampaignRequestId;
     private string Vdn = string.Empty;
@@ -466,14 +478,17 @@
         }
         if (ListCampaigns is not null)
         {
-            ActiveCampaigns = ListCampaigns.Where(c => c.IsActive == true && c.RequesterId == myId).ToList();
-            InActiveCampaigns = ListCampaigns.Where(c => c.IsActive == false && c.RequesterId == myId).ToList();
-            PendingCampaigns = ListCampaigns.Where(c => c.IsPending == true && c.RequesterId == myId).ToList();
-            totalCampaignsCount = ListCampaigns.Where(c => c.RequesterId == myId).Count();
-            activeCampaignsCount = ActiveCampaigns.Count();
-            inactiveCampaignsCount = ListCampaigns.Where(c => c.IsActive == false && c.RequesterId == myId).Count();
-            pendingCampaignsCount = ListCampaigns.Where(c => c.IsPending == true && c.RequesterId == myId).Count();
             Campaigns = ListCampaigns.Where(c => c.RequesterId == myId);
+            ActiveCampaigns = Campaigns.Where(c => c.IsActive == true).ToList();
+            InActiveCampaigns = Campaigns.Where(c => c.IsActive == false).ToList();
+            AwaitingActivation = Campaigns.Where(c => c.IsActive == false && c.IsConfirmedByRequester == true).ToList();
+            AwaitingTestConfirmation = Campaigns.Where(c => c.IsActive == false && c.IsPending == true && c.IsConfirmedByRequester == false).ToList();
+            
+            
+            totalCampaignsCount = Campaigns.Count();
+            activeCampaignsCount = ActiveCampaigns.Count();
+            awaitingTestConfirmationCount = AwaitingTestConfirmation.Count();
+            awaitingActivationCount = AwaitingActivation.Count();
         }
 
     }
