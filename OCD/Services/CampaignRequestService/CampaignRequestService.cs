@@ -16,6 +16,43 @@ namespace OCD.Services.CampaignRequestService
             _dataContext = dataContext;
         }
 
+        public async Task<BaseResponse> ActivateCampaignRequest(CampaignRequest campaignRequest)
+        {
+            var response = new BaseResponse();
+            using (var context = await _dataContext.CreateDbContextAsync())
+            {
+                try
+                {
+                    context.CampaignRequests.Attach(campaignRequest);
+
+                    context.Entry(campaignRequest).Property(r => r.IsActive).IsModified = true;
+                    context.Entry(campaignRequest).Property(r => r.IsPending).IsModified = true;
+                    var entries = context.ChangeTracker.Entries();
+                    foreach (var entry in entries)
+                    {
+                        Console.WriteLine($"{entry.Entity.GetType().Name} - {entry.State}");
+                    }
+                    var result = await context.SaveChangesAsync();
+                    if (result > 0)
+                    {
+                        response.StatusCode = 200;
+                        response.Message = "Campaign Request has successfully been activated";
+                    }
+                    else
+                    {
+                        response.StatusCode = 500;
+                        response.Message = "Error activating campaign request";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    response.StatusCode = 500;
+                    response.Message = $"Error activating campaign request: {ex.Message}";
+                }
+            }
+            return response;
+        }
+
         public async Task<BaseResponse> AddCampaignRequest(CampaignRequestDTO campaignRequestDTO)
         {
             var response = new BaseResponse();
@@ -264,27 +301,30 @@ namespace OCD.Services.CampaignRequestService
 
         public async Task<BaseResponse> UpdateCampaignRequest(CampaignRequest campaignRequest)
         {
-            using var context = await _dataContext.CreateDbContextAsync();
             var response = new BaseResponse();
-            try
+            using (var context = await _dataContext.CreateDbContextAsync())
             {
-                context.CampaignRequests.Update(campaignRequest);
-                var result = await context.SaveChangesAsync();
-                if (result == 1)
+                try
                 {
-                    response.StatusCode = 200;
-                    response.Message = "Campaign Request updated successfully";
+                    context.CampaignRequests.Update(campaignRequest);
+                    var result = await context.SaveChangesAsync();
+                    if (result > 0)
+                    {
+                        response.StatusCode = 200;
+                        response.Message = "Campaign Request updated successfully";
+                    }
+                    else
+                    {
+                        response.StatusCode = 500;
+                        response.Message = "Error updating campaign request";
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
                     response.StatusCode = 500;
-                    response.Message = "Error updating campaign request";
+                    response.Message = $"Error updating campaign request: {ex.Message}";
                 }
-            }
-            catch (Exception ex)
-            {
-                response.StatusCode = 500;
-                response.Message = $"Error updating campaign request: {ex.Message}";
+
             }
 
             return response;

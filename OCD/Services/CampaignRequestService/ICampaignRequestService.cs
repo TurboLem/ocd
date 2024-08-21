@@ -15,6 +15,7 @@ namespace OCD.Services.CampaignRequestService
         Task<GetUserCampaignsResponse> GetUserCampaigns(string userId);
         Task<BaseResponse> AddCampaignRequest(CampaignRequestDTO campaignRequestDTO);
         Task<BaseResponse> UpdateCampaignRequest(CampaignRequest campaignRequest);
+        Task<BaseResponse> ActivateCampaignRequest(CampaignRequest campaignRequest);
 
 
 
