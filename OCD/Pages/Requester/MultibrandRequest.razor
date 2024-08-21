@@ -3,6 +3,7 @@
 @using OCD.DTOs
 @using OCD.Data
 @using OCD.Models
+@using System.Security.Claims
 @inject IDialogService DialogService
 @inject IDbContextFactory<DataContext> DbContextFactory
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -393,8 +394,8 @@
 
 @code {
     private bool isSelectOwnBrand = true;
-    private bool isMultiSelect = true; // Default to true
-    private MudForm form1;
+    private bool isMultiSelect = true; 
+    private MudForm form1 = default!;
     private CampaignRequestDTO parentCampaignRequest = new();
     private List<CampaignRequestDTO> subCampaignRequests { get; set; } = new List<CampaignRequestDTO>();
     private IEnumerable<string> selectedBrands { get; set; } = new HashSet<string>();
@@ -412,11 +413,11 @@
     private List<SourceBreak> sourceBreaks = new();
     private List<Publication> publications = new();
     private List<PublicationOwner> publicationOwners = new();
-    private ApplicationUser Requester { get; set; }
     private List<CommunicationType> communicationTypes = new();
     private List<ConnexDiallerCampaign> connexDiallerCampaigns = new();
     private List<ConnexDiallerSource> connexDiallerSources = new();
     private List<BrokerCode> brokerCodes = new();
+    private string userId = string.Empty;
     private DateRange _dateRangeCR;
     private DateRange DateRangeCR
     {
@@ -438,7 +439,7 @@
         {
             return subCampaignRequests[index];
         }
-        return null;
+        return null!;
     }
 
 
@@ -446,6 +447,7 @@
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
+        userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
         using (var context = DbContextFactory.CreateDbContext())
         {
             campaigns = await context.Campaigns.AsNoTracking().ToListAsync();
@@ -462,7 +464,7 @@
             communicationTypes = await context.CommunicationTypes.AsNoTracking().ToListAsync();
             connexDiallerCampaigns = await context.ConnexDiallerCampaigns.AsNoTracking().ToListAsync();
             brokerCodes = await context.BrokerCodes.AsNoTracking().ToListAsync();
-            Requester = await context.Users.FirstOrDefaultAsync(x => x.Email == user.Identity!.Name) ?? new();
+            
         }
         DateRangeCR = new DateRange(parentCampaignRequest.StartDate, parentCampaignRequest.EndDate);
     }
@@ -480,7 +482,6 @@
                         CampaignId = parentCampaignRequest.CampaignId,
                         CommunicationTypeId = parentCampaignRequest.CommunicationTypeId,
                         BusinessUnitId = parentCampaignRequest.BusinessUnitId,
-                        // CampaignRequestBrands = string.Join(",", selectedBrands),
                         CampaignRequestBrands = (selectedBrands is not null && selectedBrands.Any())
             ? string.Join(",", selectedBrands)
             : placeholder,
@@ -503,9 +504,10 @@
                         TrackingCode = null,
                         CampaignRequestMainId = null,
                         PackTypeId = null,
-                        RequesterId = Requester.Id, // Get the current logged user's id and add it here
+                        RequesterId = userId, 
                         ActionedBy = null,
                         ActionedDate = null,
+                        IsConfirmedByRequester = false,
                         RequestedDate = DateTime.Now,
                     };
                 context.CampaignRequests.Add(mainCampaignRequest);
@@ -541,9 +543,10 @@
                             IsPending = false,
                             CampaignRequestMainId = mainCampaignRequest.Id,
                             PackTypeId = null,
-                            RequesterId = Requester.Id,
+                            RequesterId = userId,
                             ActionedBy = null,
                             ActionedDate = null,
+                            IsConfirmedByRequester = false,
                             RequestedDate = mainCampaignRequest.RequestedDate,
 
                         };
@@ -571,26 +574,20 @@
 
         StateHasChanged();
     }
-    private async Task OnBrandChangedSingleSelection(IEnumerable<string> selectedBrands)
-    {
 
-    }
     private async Task OnBrandChanged(IEnumerable<string> selectedBrands)
     {
         var selectedBrandList = selectedBrands.ToList();
 
         if (selectedBrandList.Contains("TELESURE MULTIBRAND"))
-        {
-            // isSelectOwnBrand = false;
+        {           
             InitializeSubCampaignRequests(5);
         }
         else
         {
-            // isSelectOwnBrand = true;
             InitializeSubCampaignRequests(selectedBrandList.Count);
         }
-        Console.WriteLine($"Sub Campaign Requests Count: {subCampaignRequests.Count}");
-        StateHasChanged(); // Refresh the UI
+        StateHasChanged(); 
     }
     private void InitializeSubCampaignRequests(int count)
     {
@@ -599,6 +596,6 @@
         {
             subCampaignRequests.Add(new CampaignRequestDTO());
         }
-        Console.WriteLine($"Initialized {count} Sub Campaign Requests");
+       
     }
 }
