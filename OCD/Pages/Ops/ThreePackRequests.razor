@@ -2,32 +2,21 @@
 @using Microsoft.EntityFrameworkCore
 @using OCD.Data
 @using OCD.Models
+@using OCD.Services
 @using OCD.Services.CampaignRequestService
 @inherits OwningComponentBase<ICampaignRequestService>
 @inject IDbContextFactory<DataContext> DbContextFactory
 @inject IDialogService DialogService
+@inject IEmailService EmailService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ISnackbar Snackbar
 
 <AuthorizeView Roles="Ops">
     <Authorized>
-        
-
-@* 
-            <MudText Typo="Typo.h6">Three Pack Campaigns</MudText> *@
-            <div class="mb-3 d-flex align-items-center">
-                <MudTextField @bind-Value="searchString" Placeholder="Search by description..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="mr-3" Style="width: 300px;" />
-                <MudSelect @bind-Value="selectedCampaignType" Label="All campaign types" T="string" Style="width: 100px;">
-                    <MudSelectItem Value="@("All")">All</MudSelectItem>
-                    <MudSelectItem Value="@("Active")">Active</MudSelectItem>
-                    <MudSelectItem Value="@("Inactive")">Inactive</MudSelectItem>
-                    <MudSelectItem Value="@("Completed")">Completed</MudSelectItem>
-                </MudSelect>
-            </div>
             <MudDataGrid Class="shadow-md rounded-lg border grid mt-7" Items="@Campaigns" HorizontalScrollbar="true" Hover="true" Striped="true" RowsPerPageOptions="new int[] { 10, 25, 50, 100 }" FixedHeader="true" Height="65vh" RowsPerPage="10" Style="background-color:white;">
                 <ToolBarContent>
                 <MudText Typo="Typo.h6">Three Pack Campaigns</MudText>
                 <MudSpacer />
-                @* <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
-                AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField> *@
                 </ToolBarContent>
                 <Columns>
                     <PropertyColumn Property="x => x.Id" Title="Campaign Id" HeaderStyle="white-space:nowrap" />
@@ -68,6 +57,17 @@
                             </MudStack>
                         </CellTemplate>
                     </TemplateColumn>
+                <TemplateColumn CellClass=" justify-end" HeaderStyle="white-space:nowrap">
+                    <CellTemplate Context="_context">
+                        <MudStack Row>
+                            <MudButton Disabled="(_context.Item.IsActive || !_context.Item.IsConfirmedByRequester)" StartIcon="@Icons.Material.Filled.NotStarted" Variant="@Variant.Filled" Color="Color.Primary" Size="@Size.Small" OnClick="@(async () => await ActivateCampaignRequest(_context.Item))">Activate</MudButton>
+                            @if (_itemLoadingState.GetValueOrDefault(_context.Item.Id, false))
+                            {
+                                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                            }
+                        </MudStack>
+                    </CellTemplate>
+                </TemplateColumn>
                     <TemplateColumn CellClass=" justify-end" HeaderStyle="white-space:nowrap">
                         <CellTemplate Context="_context">
                             <MudStack Row>
@@ -103,6 +103,7 @@
     private string selectedCampaignType = "All";
     private CampaignRequest selectedCampaign = null;
     private ApplicationUser Requester = new();
+    private ApplicationUser RequestersManager = new();
     private string SysAidLog = string.Empty;
     private string BusinessUnit = string.Empty;
     private string CampaignType = string.Empty;
@@ -114,6 +115,10 @@
     private NavigationManager NavigationManager { get; set; }
     private IEnumerable<CampaignRequest> ListCampaigns { get; set; }
     private IEnumerable<CampaignRequest> Campaigns { get; set; }
+    private Dictionary<int, bool> _itemLoadingState = new();
+    private string LoggedInUserFullName = string.Empty;
+    private string RequesterEmail = string.Empty;
+    private string RequestersManagersEmail = string.Empty;
     private IEnumerable<CampaignRequest> FilteredCampaigns
     {
         get
@@ -165,6 +170,74 @@
     private void ViewComments(int campaignRequestId)
     {
        NavigationManager.NavigateTo($"/comments/{campaignRequestId}");
+    }
+    private async Task ActivateCampaignRequest(CampaignRequest campaign)
+    {
+        _itemLoadingState[campaign.Id] = true;
+        StateHasChanged();
+
+        using (var context = await DbContextFactory.CreateDbContextAsync())
+        {
+
+            Requester = await context.Users.Where(u => u.Id == campaign.RequesterId).FirstOrDefaultAsync();
+
+            RequestersManager = await context.Users.Where(u => u.Id == Requester.ManagerId.ToString()).FirstOrDefaultAsync();
+
+            if (Requester is not null && RequestersManager is not null)
+            {
+                RequesterEmail = Requester.Email!;
+                RequestersManagersEmail = RequestersManager.Email!;
+            };
+        }
+        try
+        {
+            campaign.IsActive = true;
+            campaign.IsPending = false;
+
+            var result = await Service.ActivateCampaignRequest(campaign);
+            if (result.StatusCode == 200)
+            {
+                var subject = $"OCD Campaign Request Activation for Campaign: {campaign.Description}";
+
+                var body = $@"<p>Dear {campaign.Requester.Name} {campaign.Requester.Surname},</p>
+                         <p>Your campaign request ({campaign.Description}) has been activated by {LoggedInUserFullName}.</p>
+                         <p>Regards,</p>
+                         <p>Ops Team</p>";
+
+                try
+                {
+
+                    await EmailService.SendCampaignActivationEmail(subject: subject, message: body, requesterEmailAdrress: RequesterEmail, managerEmailAddress: RequestersManagersEmail);
+                    Snackbar.Add("Campaign request activated successfully", Severity.Success);
+                }
+                catch (Exception emailException)
+                {
+                    campaign.IsActive = false;
+                    campaign.IsPending = true;
+                    await Service.ActivateCampaignRequest(campaign);
+                    // TODO: Log error
+
+                    Snackbar.Add($"Failed to activate campaign request. please try again later", Severity.Error);
+                }
+            }
+            else
+            {
+                Snackbar.Add("Failed to activate campaign request. Please try again later.", Severity.Error);
+            }
+
+
+        }
+        catch (Exception dbException)
+        {
+            // TODO: Log error
+            Snackbar.Add($"Failed to activate campaign request. Please try again later.", Severity.Error);
+        }
+        finally
+        {
+
+            _itemLoadingState[campaign.Id] = false;
+            StateHasChanged();
+        }
     }
 }
 

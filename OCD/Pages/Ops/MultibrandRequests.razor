@@ -2,11 +2,14 @@
 @using Microsoft.EntityFrameworkCore
 @using OCD.Data
 @using OCD.Models
+@using OCD.Services
 @using OCD.Services.CampaignRequestService
 @inherits OwningComponentBase<ICampaignRequestService>
 @inject IDbContextFactory<DataContext> DbContextFactory
 @inject IDialogService DialogService
-
+@inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IEmailService EmailService
 <AuthorizeView Roles="Ops">
     <Authorized>
         <div class="mb-3 d-flex align-items-center">
@@ -60,6 +63,17 @@
                 <TemplateColumn CellClass=" justify-end" HeaderStyle="white-space:nowrap">
                     <CellTemplate Context="_context">
                         <MudStack Row>
+                            <MudButton Disabled="(_context.Item.IsActive || !_context.Item.IsConfirmedByRequester)" StartIcon="@Icons.Material.Filled.NotStarted" Variant="@Variant.Filled" Color="Color.Primary" Size="@Size.Small" OnClick="@(async () => await ActivateCampaignRequest(_context.Item))">Activate</MudButton>
+                            @if (_itemLoadingState.GetValueOrDefault(_context.Item.Id, false))
+                            {
+                                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                            }
+                        </MudStack>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn CellClass=" justify-end" HeaderStyle="white-space:nowrap">
+                    <CellTemplate Context="_context">
+                        <MudStack Row>
                             <MudButton StartIcon="@Icons.Material.Filled.AddComment" Variant="@Variant.Filled" Color="Color.Info" Size="@Size.Small" OnClick="() => OpenCommentModal(_context.Item.Id)">Add Comment</MudButton>
                         </MudStack>
                     </CellTemplate>
@@ -83,17 +97,21 @@
 </AuthorizeView>
 
 @code {
-    private int activeIndex;
+ 
     private string searchString = string.Empty;
-    private string selectedCampaignType = "All";
     private CampaignRequest selectedCampaign = null;
     private ApplicationUser Requester = new();
+    private ApplicationUser RequestersManager = new();
     private string SysAidLog = string.Empty;
     private string BusinessUnit = string.Empty;
     private string CampaignType = string.Empty;
     private string CampaignStatus = string.Empty;
     private string Description = string.Empty;
     private int CampaignRequestId;
+    private string LoggedInUserFullName = string.Empty;
+    private string RequesterEmail = string.Empty;
+    private string RequestersManagersEmail = string.Empty;
+    private Dictionary<int, bool> _itemLoadingState = new();
     private IEnumerable<ApplicationUser> Requesters { get; set; }
     [Inject]
     private NavigationManager NavigationManager { get; set; }
@@ -127,6 +145,8 @@
             Campaigns = ListCampaigns;
         }
     }
+
+    #region OpenCommentModal
     private void OpenCommentModal(int campaignRequestId)
     {
         CampaignRequestId = campaignRequestId;
@@ -138,20 +158,96 @@
         var options = new DialogOptions { MaxWidth = MaxWidth.Medium, CloseButton = true };
         DialogService.Show<Components.AddCommentModal>("Add Comment", parameters, options);
     }
+    #endregion
+
+    #region OnCommentAdded
     private async Task OnCommentAdded()
     {
         NavigationManager.NavigateTo("/ops-dashboard", true);
     }
+    #endregion
+
+    #region Edit Campaign
     private void EditCampaign(CampaignRequest campaign)
     {
         selectedCampaign = campaign;
-        // Navigate to edit page or show modal
+        
         NavigationManager.NavigateTo($"/ops/campaigns/one-pack/edit/{campaign.Id}");
     }
+    #endregion
+
+    #region View Comments
     private void ViewComments(int campaignRequestId)
     {
         NavigationManager.NavigateTo($"/comments/{campaignRequestId}");
     }
+    #endregion
+
+    #region Activate Campaign Request
+    private async Task ActivateCampaignRequest(CampaignRequest campaign)
+    {
+        _itemLoadingState[campaign.Id] = true;
+        StateHasChanged();
+
+        using (var context = await DbContextFactory.CreateDbContextAsync())
+        {
+
+            Requester = await context.Users.Where(u => u.Id == campaign.RequesterId).FirstOrDefaultAsync();
+
+            RequestersManager = await context.Users.Where(u => u.Id == Requester.ManagerId.ToString()).FirstOrDefaultAsync();
+
+            if (Requester is not null && RequestersManager is not null)
+            {
+                RequesterEmail = Requester.Email!;
+                RequestersManagersEmail = RequestersManager.Email!;
+            };
+        }
+        try
+        {
+            campaign.IsActive = true;
+            campaign.IsPending = false;
+
+            var result = await Service.ActivateCampaignRequest(campaign);
+            if (result.StatusCode == 200)
+            {
+                var subject = $"OCD Campaign Request Activation for Campaign: {campaign.Description}";
+
+                var body = $@"<p>Dear {campaign.Requester.Name} {campaign.Requester.Surname},</p>
+                             <p>Your campaign request ({campaign.Description}) has been activated by {LoggedInUserFullName}.</p>
+                             <p>Regards,</p>
+                             <p>Ops Team</p>";
+                try
+                {
+                    await EmailService.SendCampaignActivationEmail(subject: subject, message: body, requesterEmailAdrress: RequesterEmail, managerEmailAddress: RequestersManagersEmail);
+                    Snackbar.Add("Campaign request activated successfully", Severity.Success);
+                }
+                catch (Exception emailException)
+                {
+                    campaign.IsActive = false;
+                    campaign.IsPending = true;
+                    await Service.ActivateCampaignRequest(campaign);
+                    // TODO: Log error
+
+                    Snackbar.Add($"Failed to activate campaign request. please try again later", Severity.Error);
+                }
+            }
+            else
+            {
+                Snackbar.Add("Failed to activate campaign request. Please try again later.", Severity.Error);
+            }
+        }
+        catch (Exception dbException)
+        {
+            // TODO: Log error
+            Snackbar.Add($"Failed to activate campaign request. Please try again later.", Severity.Error);
+        }
+        finally
+        {
+            _itemLoadingState[campaign.Id] = false;
+            StateHasChanged();
+        }
+    }
+    #endregion
 }
 
 
