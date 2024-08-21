@@ -28,7 +28,7 @@ namespace OCD.Areas.Identity.Pages.Account
         }
         public async Task OnGetAsync()
         {
-            // Initialize Managers with a list of users where IsManager is true
+           
             Managers = await _userManager.Users.Where(u => u.IsManager == true).ToListAsync();
         }
 
@@ -61,21 +61,7 @@ namespace OCD.Areas.Identity.Pages.Account
 
                 };
                 var result = await _userManager.CreateAsync(user, Input.Password);
-                //if (result.Succeeded)
-                //{
-                //    await _userManager.AddToRoleAsync(user, Input.SelectedRole);
-                //    var message = $"{Input.Name} {Input.Surname} has requested access to OCD as a {Input.SelectedRole}. Please log on to your dashboard to review the request and grant the user access.</p>";
-                //    var subject = "Request for access on OCD";
-                //    await _emailService.SendTestEmail(subject, message);
-                //    return new JsonResult(new { success = true, message = "Request for access sent. You will receive an email as soon as access has been granted.", redirectUrl = Url.Page("/account/login") });
-                //}
-                //else
-                //{
-
-                //    var errors = result.Errors.Select(e => e.Description).ToList();
-                //    return new JsonResult(new { success = false, message = string.Join(", ", errors) });
-
-                //}
+                
                 if (result.Succeeded)
                 {
                     await _userManager.AddToRoleAsync(user, Input.SelectedRole);
