@@ -37,9 +37,10 @@
                                 </div>
 
                                 <div class="form-floating mb-3">
-                                    <input asp-for="Input.Email" class="form-control form-control-sm" autocomplete="username" placeholder="Email Address" required/>
+                                    <input asp-for="Input.Email" id="emailInput" class="form-control form-control-sm" autocomplete="off" placeholder="Email Address" required list="emailSuggestions" />
                                     <label asp-for="Input.Email">Email</label>
                                     <span asp-validation-for="Input.Email" class="text-danger"></span>
+                                    <datalist id="emailSuggestions"></datalist>
                                 </div>
 
                                 <div class="form-floating mb-3">
@@ -154,5 +155,43 @@
             });
         });
     </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const emailInput = document.getElementById('emailInput');
+        const emailSuggestions = document.getElementById('emailSuggestions');
+        const emailDomains = [
+            "tihsa.co.za",
+            "telesure.co.za",
+            "autogen.co.za",
+            "budgetinsurance.co.za",
+            "firstforwomen.co.za",
+            "virsekker.co.za",
+            "1life.co.za"
+        ];
+
+       emailInput.addEventListener('input', function () {
+                const inputValue = emailInput.value;
+                const atPosition = inputValue.indexOf('@@');
+
+                if (atPosition !== -1) {
+                    const domainPart = inputValue.substring(atPosition + 1);
+                    const usernamePart = inputValue.substring(0, atPosition);
+
+                    emailSuggestions.innerHTML = '';
+
+                    emailDomains.forEach(domain => {
+                        if (domain.startsWith(domainPart)) {
+                            const option = document.createElement('option');
+                            option.value = usernamePart + '@@' + domain;
+                            emailSuggestions.appendChild(option);
+                        }
+                    });
+                } else {
+                    emailSuggestions.innerHTML = '';
+                }
+        });
+    });
+</script>
+
 
 }

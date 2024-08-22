@@ -137,5 +137,6 @@ public class InputRegisterModel
     public bool? IsManager { get; set; } = false;
     public bool? IsOperations { get; set; } = false;
     public string? SelectedRole { get; set; }
+
 }
 
