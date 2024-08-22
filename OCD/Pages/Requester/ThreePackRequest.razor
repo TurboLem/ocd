@@ -3,6 +3,7 @@
 @using OCD.DTOs
 @using OCD.Data
 @using OCD.Models
+@using System.Security.Claims
 @inject IDbContextFactory<DataContext> DbContextFactory
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ISnackbar Snackbar
@@ -332,13 +333,14 @@
     private List<ConnexDiallerSource> connexDiallerSourcesCR = new List<ConnexDiallerSource>();
     private List<ConnexDiallerSource> connexDiallerSourcesPNV = new List<ConnexDiallerSource>();
     private List<ConnexDiallerSource> connexDiallerSourcesPV = new List<ConnexDiallerSource>();
-    private string loggedInUserId;
+    private string userId = string.Empty;
 
 
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
+        userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
         using (var context = await DbContextFactory.CreateDbContextAsync())
         {
             campaigns = await context.Campaigns.AsNoTracking().ToListAsync();
@@ -445,9 +447,10 @@
                         TrackingCode = null,
                         CampaignRequestMainId = null,
                         PackTypeId = 2,
-                        RequesterId = Requester.Id,
+                        RequesterId = userId,
                         ActionedBy = null,
                         ActionedDate = null,
+                        IsConfirmedByRequester = false,
                         RequestedDate = DateTime.Now
 
                     };
@@ -485,9 +488,10 @@
                     IsPending = false,
                     TrackingCode = null,
                     PackTypeId = 2,
-                    RequesterId = Requester.Id,
+                    RequesterId = userId,
                     ActionedBy = null,
                     ActionedDate = null,
+                    IsConfirmedByRequester = false,
                     RequestedDate = DateTime.Now
                 },
                 new CampaignRequest
