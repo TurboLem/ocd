@@ -33,8 +33,8 @@ namespace OCD.Services
         public async Task SendTestEmail(string subject, string messageBody)
         {
             var smtpHost = _configuration["Smtp:Host"];
-            var smtpUsername = _configuration["GMAIL_SMTP_USER"] ?? _configuration["Smtp:Username"];
-            var smtpPassword = _configuration["GMAIL_SMTP_PASS"] ?? _configuration["Smtp:Password"];
+            var smtpUsername = Environment.GetEnvironmentVariable("GMAIL_SMTP_USER") ?? _configuration["Smtp:Username"];
+            var smtpPassword = Environment.GetEnvironmentVariable("GMAIL_SMTP_PASS") ?? _configuration["Smtp:Password"];
 
             var smtpClient = new SmtpClient(smtpHost)
             {
@@ -55,8 +55,8 @@ namespace OCD.Services
         private async Task SendEmailAsync(string subject, string messageBody, string emailAddress, IEnumerable<string>? additionalEmailAddresses = null)
         {
             var smtpHost = _configuration["Smtp:Host"];
-            var smtpUsername = _configuration["GMAIL_SMTP_USER"] ?? _configuration["Smtp:Username"];
-            var smtpPassword = _configuration["GMAIL_SMTP_PASS"] ?? _configuration["Smtp:Password"];
+            var smtpUsername = Environment.GetEnvironmentVariable("GMAIL_SMTP_USER") ?? _configuration["Smtp:Username"];
+            var smtpPassword = Environment.GetEnvironmentVariable("GMAIL_SMTP_PASS") ?? _configuration["Smtp:Password"];
 
             if (string.IsNullOrEmpty(smtpHost) || string.IsNullOrEmpty(smtpUsername) || string.IsNullOrEmpty(smtpPassword))
             {
