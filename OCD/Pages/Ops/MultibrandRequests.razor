@@ -218,7 +218,7 @@
                              <p>Ops Team</p>";
                 try
                 {
-                    await EmailService.SendCampaignActivationEmail(subject: subject, message: body, requesterEmailAdrress: RequesterEmail, managerEmailAddress: RequestersManagersEmail);
+                  //  await EmailService.SendCampaignActivationEmail(subject: subject, message: body, requesterEmailAdrress: RequesterEmail, managerEmailAddress: RequestersManagersEmail);
                     Snackbar.Add("Campaign request activated successfully", Severity.Success);
                 }
                 catch (Exception emailException)

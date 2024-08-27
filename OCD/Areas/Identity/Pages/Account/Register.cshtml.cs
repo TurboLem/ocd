@@ -73,7 +73,7 @@ namespace OCD.Areas.Identity.Pages.Account
                             var message = $"{Input.Name} {Input.Surname} has requested access to OCD as a {Input.SelectedRole}. Please log on to your dashboard to review the request and grant the user access.</p>";
                             var subject = "Request for access on OCD";
 
-                            await _emailService.SendTestEmail(subject, message);
+                           // await _emailService.SendTestEmail(subject, message);
 
                             await transaction.CommitAsync();
 

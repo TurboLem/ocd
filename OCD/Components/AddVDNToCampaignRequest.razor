@@ -317,7 +317,7 @@
                                           <p>Regards,</p>
                                           <p>Ops Team</p>";
 
-                                await EmailService.SendTestEmail(subject, body);
+                               // await EmailService.SendTestEmail(subject, body);
                                 await transaction.CommitAsync();
                                 Snackbar.Add("Campaign updated successfully!", Severity.Success);
                                 NavigationManager.NavigateTo("/ops-dashboard");
