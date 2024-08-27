@@ -309,6 +309,7 @@
                         try
                         {
                             context.CampaignRequests.Update(campaign);
+                            await context.SaveChangesAsync();
                             
                                 var subject = "Campaign Request Updated";
                                 var body = $@"<p>Dear {Requester.Name} {Requester.Surname},</p>
@@ -318,7 +319,8 @@
                                           <p>Ops Team</p>";
 
                                // await EmailService.SendTestEmail(subject, body);
-                                await transaction.CommitAsync();
+                               await transaction.CommitAsync();
+                              
                                 Snackbar.Add("Campaign updated successfully!", Severity.Success);
                                 NavigationManager.NavigateTo("/ops-dashboard");
                            
