@@ -63,7 +63,7 @@ builder.Services.AddScoped<ITestVDNService, TestVDNService>();
 builder.Services.AddAuthenticationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<ApplicationUser>>();
 
-// TODO: for Kong, set Kestrel to use/listen port 80 since running on rancher
+// Comment this Kestrel config out if developing on local machine
 
 builder.Services.Configure<KestrelServerOptions>(options =>
 {
