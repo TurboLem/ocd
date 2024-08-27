@@ -23,7 +23,7 @@ spec:
             readOnlyRootFilesystem: false
             runAsNonRoot: false
           env:
-            - name: NODE_ENV
+            - name: ASPNETCORE_ENVIRONMENT
               value: "#{StageEnvironment}#"
 
             - name: NEXTAUTH_URL
