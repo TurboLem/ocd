@@ -65,10 +65,10 @@ builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuth
 
 // TODO: for Kong, set Kestrel to use/listen port 80 since running on rancher
 
-//builder.Services.Configure<KestrelServerOptions>(options =>
-//{
-//    options.ListenAnyIP(80);
-//});
+builder.Services.Configure<KestrelServerOptions>(options =>
+{
+    options.ListenAnyIP(80);
+});
 builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
 builder.Logging.AddConsole();
 
