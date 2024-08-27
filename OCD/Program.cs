@@ -67,7 +67,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuth
 
 builder.Services.Configure<KestrelServerOptions>(options =>
 {
-    options.ListenAnyIP(80);
+    options.ListenAnyIP(5000);
 });
 builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
 builder.Logging.AddConsole();
