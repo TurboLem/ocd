@@ -69,7 +69,7 @@ namespace OCD.Areas.Identity.Pages.Account
     {
         [Required]
         [EmailAddress]
-        [RegularExpression(@"^[0-9a-zA-Z]*@(tihsa|telesure|autogen|budgetinsurance|firstforwomen|virsekker|1life)\.co\.za$", ErrorMessage = "Please use your TIH email address")]
+        [RegularExpression(@"^[0-9a-zA-Z]*@(tihsa|telesure|autogen|budgetins|businessins|dialdirect|firstforwomen|virsekker|1life|brokersupport|hippo|hippoadvice|isservices)\.co\.za$", ErrorMessage = "Please use your TIH email address")]
         public string Email { get; set; } = null!;
 
         [Required]
