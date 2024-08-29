@@ -11,6 +11,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IDbContextFactory<DataContext> DbContextFactory
 @inject IEmailService EmailService
+@inject IJSRuntime JSRuntime
 <AuthorizeView Roles="Ops">
     <Authorized>
         @if (campaign != null)
@@ -329,11 +330,11 @@
                                           <p>Regards,</p>
                                           <p>Ops Team</p>";
 
-                             await EmailService.SendTestEmail(subject, body);
+                            // await EmailService.SendTestEmail(subject, body);
                             await transaction.CommitAsync();
 
                             Snackbar.Add("Campaign updated successfully!", Severity.Success);
-                            NavigationManager.NavigateTo("/ops-dashboard");
+                        await JSRuntime.InvokeVoidAsync("goBack");
 
                         }
                         catch (Exception emailException)
