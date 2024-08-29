@@ -15,7 +15,7 @@
     <Authorized>
         @if (campaign != null)
         {
-            <MudForm @ref="form1">
+            <MudForm @bind-IsValid="isValid" @ref="form1">
                 <MudCard Class="d-flex align-items-center justify-content-center min-vh-100">
                     <MudCardContent Class="container mt-5">
                         <MudText Typo="Typo.h6">Edit Campaign Request</MudText>
@@ -190,8 +190,8 @@
                                 </div>
                             </MudExpansionPanel>
                         </MudExpansionPanels>
-
-                        <MudCardActions Class="justify-content-center">
+                        <hr />
+                        <MudCardActions>
                             <MudButton Color="Color.Warning" Variant="Variant.Filled" OnClick="@(()=> SaveCampaign())" Disabled="@isLoading">
                                 Save
                             </MudButton>
@@ -213,6 +213,7 @@
     [Parameter]
     public int CampaignId { get; set; }
     private bool isLoading = false;
+    private bool isValid;
     private CampaignRequest campaign;
     private MudForm form;
     private MudForm form1;
@@ -286,18 +287,28 @@
     }
     private async Task SaveCampaign()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        var name = user.FindFirst(ClaimTypes.GivenName)?.Value;
-        var surname = user.FindFirst(ClaimTypes.Surname)?.Value;
-        LoggedInUserId = user.FindFirst(ClaimTypes.NameIdentifier)!.Value!;
-        LoggedInUserFullName = $"{name} {surname}";
+        if (isLoading)
+        {
+            return;
+        }
         isLoading = true;
-
+        StateHasChanged();
         try
         {
-            if (form1.IsValid)
+            await form1.Validate();
+            if (!isValid)
             {
+                Snackbar.Add("Please fill in all required fields.", Severity.Error);
+                return;
+            }
+            
+                var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+                var user = authState.User;
+                var name = user.FindFirst(ClaimTypes.GivenName)?.Value;
+                var surname = user.FindFirst(ClaimTypes.Surname)?.Value;
+                LoggedInUserId = user.FindFirst(ClaimTypes.NameIdentifier)!.Value!;
+                LoggedInUserFullName = $"{name} {surname}";
+
                 campaign.ActionedBy = LoggedInUserId;
                 campaign.ActionedDate = DateTime.Now;
                 campaign.IsPending = true;
@@ -310,20 +321,20 @@
                         {
                             context.CampaignRequests.Update(campaign);
                             await context.SaveChangesAsync();
-                            
-                                var subject = "Campaign Request Updated";
-                                var body = $@"<p>Dear {Requester.Name} {Requester.Surname},</p>
+
+                            var subject = "Campaign Request Updated";
+                            var body = $@"<p>Dear {Requester.Name} {Requester.Surname},</p>
                                           <p>Your campaign request ({campaign.Description}) has been updated with a new VDN/Tracking Code by {LoggedInUserFullName}.</p>
                                           <p>Kindly check the details and let us know if you need any further assistance.</p>
                                           <p>Regards,</p>
                                           <p>Ops Team</p>";
 
-                               // await EmailService.SendTestEmail(subject, body);
-                               await transaction.CommitAsync();
-                              
-                                Snackbar.Add("Campaign updated successfully!", Severity.Success);
-                                NavigationManager.NavigateTo("/ops-dashboard");
-                           
+                             await EmailService.SendTestEmail(subject, body);
+                            await transaction.CommitAsync();
+
+                            Snackbar.Add("Campaign updated successfully!", Severity.Success);
+                            NavigationManager.NavigateTo("/ops-dashboard");
+
                         }
                         catch (Exception emailException)
                         {
@@ -332,11 +343,12 @@
                         }
                     }
                 }
-            }
+            
         }
         finally
         {
             isLoading = false;
+            StateHasChanged();
         }
     }
 
