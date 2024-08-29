@@ -78,7 +78,7 @@
                                     </div>
 
                                 }
-                                <div class="form-group col-md-3">
+                                <div class="form-group col-md-4">
                                     <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Connex Dialler Campaign" @bind-Value="parentCampaignRequest.ConnexDiallerCampaignId"
                                                Required="true" RequiredError="Please select a dialler campaign" Variant="Variant.Outlined"
                                                SelectedValuesChanged="@(EventCallback.Factory.Create<IEnumerable<int>>(this, OnConnexDiallerCampaignChanged))">
@@ -88,7 +88,7 @@
                                         }
                                     </MudSelect>
                                 </div>
-                                <div class="form-group col-md-3">
+                                <div class="form-group col-md-4">
                                     <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Connex Dialler Source" @bind-Value="parentCampaignRequest.ConnexDiallerSourceId" Required="true" RequiredError="Please select a dialler source" Variant="Variant.Outlined">
                                         @foreach (var source in connexDiallerSources)
                                         {
@@ -96,7 +96,7 @@
                                         }
                                     </MudSelect>
                                 </div>
-                                <div class="form-group col-md-3">
+                                <div class="form-group col-md-4">
                                     <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Publication" @bind-Value="parentCampaignRequest.PublicationId" Required="true" RequiredError="Please select a dialler source" Variant="Variant.Outlined">
                                         @foreach (var publication in publications)
                                         {
@@ -104,7 +104,7 @@
                                         }
                                     </MudSelect>
                                 </div>
-                                <div class="form-group col-md-3">
+                                <div class="form-group col-md-6">
                                     <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Publication Owner" @bind-Value="parentCampaignRequest.PublicationOwnerId" Required="true" RequiredError="Please select a dialler source" Variant="Variant.Outlined">
                                         @foreach (var publicationOwner in publicationOwners)
                                         {
@@ -112,6 +112,14 @@
                                         }
                                     </MudSelect>
                                 </div>
+                            <div class="form-group col-md-6">
+                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Source Break" @bind-Value="parentCampaignRequest.SourceBreakId" Required="true" RequiredError="Please select a source break" Variant="Variant.Outlined">
+                                    @foreach (var sourceBreak in sourceBreaks)
+                                    {
+                                        <MudSelectItem Value="@sourceBreak.Id">@sourceBreak.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </div>
                             </div>
                             <MudTextField @bind-Value="parentCampaignRequest.Description" Label="Campaign Name" Required="true" RequiredError="Please fill in the name of your campaign" Variant="Variant.Outlined" />
                         </MudExpansionPanel>
@@ -184,7 +192,7 @@
                                                     }
                                                 </MudSelect>
                                             </div>
-                                            <div class="form-group col-md-3">
+                                            <div class="form-group col-md-4">
                                                 <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Connex Dialler Campaign" @bind-Value="request.ConnexDiallerCampaignId"
                                                            Required="true" RequiredError="Please select a dialler campaign" Variant="Variant.Outlined"
                                                            SelectedValuesChanged="@(EventCallback.Factory.Create<IEnumerable<int>>(this, OnConnexDiallerCampaignChanged))">
@@ -194,7 +202,7 @@
                                                     }
                                                 </MudSelect>
                                             </div>
-                                            <div class="form-group col-md-3">
+                                            <div class="form-group col-md-4">
                                                 <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Connex Dialler Source" @bind-Value="request.ConnexDiallerSourceId" Required="true" RequiredError="Please select a dialler source" Variant="Variant.Outlined">
                                                     @foreach (var source in connexDiallerSources)
                                                     {
@@ -202,7 +210,7 @@
                                                     }
                                                 </MudSelect>
                                             </div>
-                                            <div class="form-group col-md-3">
+                                            <div class="form-group col-md-4">
                                                 <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Publication" @bind-Value="request.PublicationId" Required="true" RequiredError="Please select a dialler source" Variant="Variant.Outlined">
                                                     @foreach (var publication in publications)
                                                     {
@@ -210,7 +218,7 @@
                                                     }
                                                 </MudSelect>
                                             </div>
-                                            <div class="form-group col-md-3">
+                                            <div class="form-group col-md-6">
                                                 <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Publication Owner" @bind-Value="request.PublicationOwnerId" Required="true" RequiredError="Please select a dialler source" Variant="Variant.Outlined">
                                                     @foreach (var publicationOwner in publicationOwners)
                                                     {
@@ -218,6 +226,14 @@
                                                     }
                                                 </MudSelect>
                                             </div>
+                                        <div class="form-group col-md-6">
+                                            <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Source Break" @bind-Value="request.SourceBreakId" Required="true" RequiredError="Please select a source break" Variant="Variant.Outlined">
+                                                @foreach (var sourceBreak in sourceBreaks)
+                                                {
+                                                    <MudSelectItem Value="@sourceBreak.Id">@sourceBreak.Name</MudSelectItem>
+                                                }
+                                            </MudSelect>
+                                        </div>
                                         </div>
                                         <MudTextField Label="Campaign Name" @bind-Value="request.Description" Required="true" RequiredError="Please fill in the name of your sub-campaign" Variant="Variant.Outlined" />
                                     </MudExpansionPanel>
@@ -258,7 +274,7 @@
                                                     }
                                                 </MudSelect>
                                             </div>
-                                            <div class="form-group col-md-3">
+                                            <div class="form-group col-md-4">
                                                 <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Connex Dialler Campaign" @bind-Value="request.ConnexDiallerCampaignId"
                                                            Required="true" RequiredError="Please select a dialler campaign" Variant="Variant.Outlined"
                                                            SelectedValuesChanged="@(EventCallback.Factory.Create<IEnumerable<int>>(this, OnConnexDiallerCampaignChanged))">
@@ -268,7 +284,7 @@
                                                     }
                                                 </MudSelect>
                                             </div>
-                                            <div class="form-group col-md-3">
+                                            <div class="form-group col-md-4">
                                                 <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Connex Dialler Source" @bind-Value="request.ConnexDiallerSourceId" Required="true" RequiredError="Please select a dialler source" Variant="Variant.Outlined">
                                                     @foreach (var source in connexDiallerSources)
                                                     {
@@ -276,7 +292,7 @@
                                                     }
                                                 </MudSelect>
                                             </div>
-                                            <div class="form-group col-md-3">
+                                            <div class="form-group col-md-4">
                                                 <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Publication" @bind-Value="request.PublicationId" Required="true" RequiredError="Please select a dialler source" Variant="Variant.Outlined">
                                                     @foreach (var publication in publications)
                                                     {
@@ -284,7 +300,7 @@
                                                     }
                                                 </MudSelect>
                                             </div>
-                                            <div class="form-group col-md-3">
+                                            <div class="form-group col-md-6">
                                                 <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Publication Owner" @bind-Value="request.PublicationOwnerId" Required="true" RequiredError="Please select a dialler source" Variant="Variant.Outlined">
                                                     @foreach (var publicationOwner in publicationOwners)
                                                     {
@@ -292,6 +308,14 @@
                                                     }
                                                 </MudSelect>
                                             </div>
+                                        <div class="form-group col-md-6">
+                                            <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Source Break" @bind-Value="request.SourceBreakId" Required="true" RequiredError="Please select a source break" Variant="Variant.Outlined">
+                                                @foreach (var sourceBreak in sourceBreaks)
+                                                {
+                                                    <MudSelectItem Value="@sourceBreak.Id">@sourceBreak.Name</MudSelectItem>
+                                                }
+                                            </MudSelect>
+                                        </div>
                                         </div>
                                         <MudTextField Label="Campaign Name" @bind-Value="request.Description" Required="true" RequiredError="Please fill in the name of your sub-campaign" Variant="Variant.Outlined" />
                                     </MudExpansionPanel>
@@ -301,7 +325,7 @@
                     }
                     <MudExpansionPanel Text="Business Unit, Channel and Source Details">
                         <div class="form-row">
-                            <div class="form-group col-md-4">
+                            <div class="form-group col-md-3">
                                 <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Communication Type" @bind-Value="parentCampaignRequest.CommunicationTypeId" Required="true" RequiredError="Please select a communication type" Variant="Variant.Outlined">
                                     @foreach (var communicationType in communicationTypes)
                                     {
@@ -309,7 +333,7 @@
                                     }
                                 </MudSelect>
                             </div>
-                            <div class="form-group col-md-4">
+                            <div class="form-group col-md-3">
                                 <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Business Unit" @bind-Value="parentCampaignRequest.BusinessUnitId" Required="true" RequiredError="Please select a channel" Variant="Variant.Outlined">
                                     @foreach (var businessUnit in businessUnits)
                                     {
@@ -318,7 +342,7 @@
                                 </MudSelect>
 
                             </div>
-                            <div class="form-group col-md-4">
+                            <div class="form-group col-md-3">
                                 <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Channel" @bind-Value="parentCampaignRequest.ChannelId" Required="true" RequiredError="Please select a channel" Variant="Variant.Outlined">
                                     @foreach (var channel in channels)
                                     {
@@ -327,19 +351,11 @@
                                 </MudSelect>
 
                             </div>
-                            <div class="form-group col-md-6">
+                            <div class="form-group col-md-3">
                                 <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Source" @bind-Value="parentCampaignRequest.SourceId" Required="true" RequiredError="Please select a source" Variant="Variant.Outlined">
                                     @foreach (var source in sources)
                                     {
                                         <MudSelectItem Value="@source.Id">@source.Name</MudSelectItem>
-                                    }
-                                </MudSelect>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Source Break" @bind-Value="parentCampaignRequest.SourceBreakId" Required="true" RequiredError="Please select a source break" Variant="Variant.Outlined">
-                                    @foreach (var sourceBreak in sourceBreaks)
-                                    {
-                                        <MudSelectItem Value="@sourceBreak.Id">@sourceBreak.Name</MudSelectItem>
                                     }
                                 </MudSelect>
                             </div>
