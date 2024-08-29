@@ -13,54 +13,55 @@
 
 <AuthorizeView Roles="Ops">
     <Authorized>
-            <MudDataGrid Class="shadow-md rounded-lg border grid mt-7" Items="@Campaigns" HorizontalScrollbar="true" Hover="true" Striped="true" RowsPerPageOptions="new int[] { 10, 25, 50, 100 }" FixedHeader="true" Height="65vh" RowsPerPage="10" Style="background-color:white;">
-                <ToolBarContent>
+        <MudDataGrid Class="shadow-md rounded-lg border grid mt-7" Items="@Campaigns" HorizontalScrollbar="true" Hover="true" Striped="true" RowsPerPageOptions="new int[] { 10, 25, 50, 100 }" FixedHeader="true" Height="65vh" RowsPerPage="10" Style="background-color:white;">
+            <ToolBarContent>
                 <MudText Typo="Typo.h6">Three Pack Campaigns</MudText>
                 <MudSpacer />
-                </ToolBarContent>
-                <Columns>
-                    <PropertyColumn Property="x => x.Id" Title="Campaign Id" HeaderStyle="white-space:nowrap" />
-                    <TemplateColumn Title="Owner" HeaderStyle="white-space:nowrap">
-                        <CellTemplate Context="_context">
-                            <MudStack Row>
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.Id" Title="Campaign Id" HeaderStyle="white-space:nowrap" />
+                <TemplateColumn Title="Owner" HeaderStyle="white-space:nowrap">
+                    <CellTemplate Context="_context">
+                        <MudStack Row>
                             <MudText Style="font-size:14px">@_context.Item.Requester.Name @_context.Item.Requester.Surname</MudText>
-                            </MudStack>
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <PropertyColumn Property="x=>x.RequestedDate.Date.ToShortDateString()" Title="Date Requested" HeaderStyle="white-space:nowrap" />
-                    <PropertyColumn Property="x => x.Description" Title="Description" HeaderStyle="white-space:nowrap" />
-                    <PropertyColumn Property="x=> x.TrackingCode" Title="VDN/TC" HeaderStyle="white-space:nowrap" />
-                    <PropertyColumn Property="x=> x.Campaign.Name" Title="Campaign Type" HeaderStyle="white-space:nowrap" />
-                    <PropertyColumn Property="x=>x.BusinessUnit.UnitName" Title="Business Unit" HeaderStyle="white-space:nowrap" />
-                    <PropertyColumn Property="x => x.CampaignRequestBrands" Title="Brand" HeaderStyle="white-space:nowrap" />
-                    <PropertyColumn Property="x=> x.CampaignBrokerCodes" Title="Broker Code" HeaderStyle="white-space:nowrap" />
-                    <PropertyColumn Property="x=> x.ConnexDiallerCampaign.Name" Title="Dialler Campaign" HeaderStyle="white-space:nowrap" />
-                    <PropertyColumn Property="x=> x.ConnexDiallerSource.Name" Title="Dialler Source" HeaderStyle="white-space:nowrap" />
-                    <PropertyColumn Property="x=> x.CommunicationType.Name" Title="Telecom Type" HeaderStyle="white-space:nowrap" />
-                    <PropertyColumn Property="x=> x.SmsNumber" Title="SMS Number" HeaderStyle="white-space:nowrap" />
-                    <PropertyColumn Property="x=> x.SharecallNumber" Title="SCN Number" HeaderStyle="white-space:nowrap" />
-                    <PropertyColumn Property="x=> x.Media.Name" Title="Media" HeaderStyle="white-space:nowrap" />
-                    <PropertyColumn Property="x=> x.Slot.Name" Title="Slot" HeaderStyle="white-space:nowrap" />
-                    <PropertyColumn Property="x=> x.SourceBreak.Name" Title="Source Break" HeaderStyle="white-space:nowrap" />
-                    @* <PropertyColumn Property="x=> x.PackType.Type" Title="Pack" HeaderStyle="white-space:nowrap" /> *@
-                    <PropertyColumn Property="x=> x.Publication.Name" Title="Publication" HeaderStyle="white-space:nowrap" />
-                    <PropertyColumn Property="x=> x.PublicationOwner.Name" Title="Publication Owner" HeaderStyle="white-space:nowrap" />
-                    <PropertyColumn Property="x=> x.Channel.Name" Title="Channel" HeaderStyle="white-space:nowrap" />
+                        </MudStack>
+                    </CellTemplate>
+                </TemplateColumn>
+                <PropertyColumn Property="x=>x.RequestedDate.Date.ToShortDateString()" Title="Date Requested" HeaderStyle="white-space:nowrap" />
+                <PropertyColumn Property="x => x.Description" Title="Description" HeaderStyle="white-space:nowrap" />
+                <PropertyColumn Property="x => x.SysAidLog" Title="SysAid Log" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" Filterable="true" />
+                <PropertyColumn Property="x=> x.TrackingCode" Title="VDN/TC" HeaderStyle="white-space:nowrap" />
+                <PropertyColumn Property="x=> x.Campaign.Name" Title="Campaign Type" HeaderStyle="white-space:nowrap" />
+                <PropertyColumn Property="x=>x.BusinessUnit.UnitName" Title="Business Unit" HeaderStyle="white-space:nowrap" />
+                <PropertyColumn Property="x => x.CampaignRequestBrands" Title="Brand" HeaderStyle="white-space:nowrap" />
+                <PropertyColumn Property="x=> x.CampaignBrokerCodes" Title="Broker Code" HeaderStyle="white-space:nowrap" />
+                <PropertyColumn Property="x=> x.ConnexDiallerCampaign.Name" Title="Dialler Campaign" HeaderStyle="white-space:nowrap" />
+                <PropertyColumn Property="x=> x.ConnexDiallerSource.Name" Title="Dialler Source" HeaderStyle="white-space:nowrap" />
+                <PropertyColumn Property="x=> x.CommunicationType.Name" Title="Telecom Type" HeaderStyle="white-space:nowrap" />
+                <PropertyColumn Property="x=> x.SmsNumber" Title="SMS Number" HeaderStyle="white-space:nowrap" />
+                <PropertyColumn Property="x=> x.SharecallNumber" Title="SCN Number" HeaderStyle="white-space:nowrap" />
+                <PropertyColumn Property="x=> x.Media.Name" Title="Media" HeaderStyle="white-space:nowrap" />
+                <PropertyColumn Property="x=> x.Slot.Name" Title="Slot" HeaderStyle="white-space:nowrap" />
+                <PropertyColumn Property="x=> x.SourceBreak.Name" Title="Source Break" HeaderStyle="white-space:nowrap" />
+                @* <PropertyColumn Property="x=> x.PackType.Type" Title="Pack" HeaderStyle="white-space:nowrap" /> *@
+                <PropertyColumn Property="x=> x.Publication.Name" Title="Publication" HeaderStyle="white-space:nowrap" />
+                <PropertyColumn Property="x=> x.PublicationOwner.Name" Title="Publication Owner" HeaderStyle="white-space:nowrap" />
+                <PropertyColumn Property="x=> x.Channel.Name" Title="Channel" HeaderStyle="white-space:nowrap" />
 
-                    <PropertyColumn Property="x => x.StartDate!.Value.Date.ToShortDateString()" Title="Start Date" HeaderStyle="white-space:nowrap" />
-                    <PropertyColumn Property="x => x.EndDate!.Value.Date.ToShortDateString()" Title="End Date" HeaderStyle="white-space:nowrap" />
+                <PropertyColumn Property="x => x.StartDate!.Value.Date.ToShortDateString()" Title="Start Date" HeaderStyle="white-space:nowrap" />
+                <PropertyColumn Property="x => x.EndDate!.Value.Date.ToShortDateString()" Title="End Date" HeaderStyle="white-space:nowrap" />
 
-                    <TemplateColumn CellClass=" justify-end" HeaderStyle="white-space:nowrap">
-                        <CellTemplate Context="_context">
-                            <MudStack Row>
-                                <MudButton StartIcon="@Icons.Material.Filled.Edit" Variant="@Variant.Filled" Color="Color.Primary" Size="@Size.Small" OnClick="@(() => EditCampaign(_context.Item))">Edit</MudButton>
-                            </MudStack>
-                        </CellTemplate>
-                    </TemplateColumn>
                 <TemplateColumn CellClass=" justify-end" HeaderStyle="white-space:nowrap">
                     <CellTemplate Context="_context">
                         <MudStack Row>
-                            <MudButton Disabled="(_context.Item.IsActive || !_context.Item.IsConfirmedByRequester)" StartIcon="@Icons.Material.Filled.NotStarted" Variant="@Variant.Filled" Color="Color.Primary" Size="@Size.Small" OnClick="@(async () => await ActivateCampaignRequest(_context.Item))">Activate</MudButton>
+                            <MudButton StartIcon="@Icons.Material.Filled.Edit" Variant="@Variant.Filled" Color="Color.Primary" Size="@Size.Small" OnClick="@(() => EditCampaign(_context.Item))">Edit</MudButton>
+                        </MudStack>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn CellClass=" justify-end" HeaderStyle="white-space:nowrap">
+                    <CellTemplate Context="_context">
+                        <MudStack Row>
+                            <MudButton Disabled="(_context.Item.IsActive || !_context.Item.IsConfirmedByRequester)" StartIcon="@Icons.Material.Filled.NotStarted" Variant="@Variant.Filled" Color="Color.Success" Size="@Size.Small" OnClick="@(async () => await ActivateCampaignRequest(_context.Item))">Activate</MudButton>
                             @if (_itemLoadingState.GetValueOrDefault(_context.Item.Id, false))
                             {
                                 <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
@@ -68,29 +69,29 @@
                         </MudStack>
                     </CellTemplate>
                 </TemplateColumn>
-                    <TemplateColumn CellClass=" justify-end" HeaderStyle="white-space:nowrap">
-                        <CellTemplate Context="_context">
-                            <MudStack Row>
-                                <MudButton StartIcon="@Icons.Material.Filled.AddComment" Variant="@Variant.Filled" Color="Color.Info" Size="@Size.Small" OnClick="() => OpenCommentModal(_context.Item.Id)">Add Comment</MudButton>
-                            </MudStack>
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <TemplateColumn CellClass=" justify-end" HeaderStyle="white-space:nowrap">
-                        <CellTemplate Context="_context">
-                            <MudStack Row>
-                                <MudButton StartIcon="@Icons.Material.Filled.Preview" Variant="@Variant.Filled" Color="Color.Info" Size="@Size.Small" OnClick="() => ViewComments(_context.Item.Id)">View Comment(s)</MudButton>
-                            </MudStack>
-                        </CellTemplate>
-                    </TemplateColumn>
-                </Columns>
-                <PagerContent>
-                    <MudDataGridPager />
-                </PagerContent>
-            </MudDataGrid>
+                <TemplateColumn CellClass=" justify-end" HeaderStyle="white-space:nowrap">
+                    <CellTemplate Context="_context">
+                        <MudStack Row>
+                            <MudButton StartIcon="@Icons.Material.Filled.AddComment" Variant="@Variant.Filled" Color="Color.Info" Size="@Size.Small" OnClick="() => OpenCommentModal(_context.Item.Id)">Add Comment</MudButton>
+                        </MudStack>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn CellClass=" justify-end" HeaderStyle="white-space:nowrap">
+                    <CellTemplate Context="_context">
+                        <MudStack Row>
+                            <MudButton StartIcon="@Icons.Material.Filled.Preview" Variant="@Variant.Filled" Color="Color.Info" Size="@Size.Small" OnClick="() => ViewComments(_context.Item.Id)">View Comment(s)</MudButton>
+                        </MudStack>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager />
+            </PagerContent>
+        </MudDataGrid>
 
 
 
-       
+
     </Authorized>
     <NotAuthorized>
         <MudAlert Severity="Severity.Error">You are not authorized to view this page.</MudAlert>
@@ -142,7 +143,7 @@
     {
         var response = await Service.GetThreePackCampaignRequests();
         ListCampaigns = response.CampaignRequests!;
-       
+
         Campaigns = ListCampaigns;
 
     }
@@ -165,11 +166,11 @@
     {
         selectedCampaign = campaign;
         // Navigate to edit page or show modal
-        NavigationManager.NavigateTo($"/ops/campaigns/one-pack/edit/{campaign.Id}");
+        NavigationManager.NavigateTo($"/ops/campaigns/edit/{campaign.Id}");
     }
     private void ViewComments(int campaignRequestId)
     {
-       NavigationManager.NavigateTo($"/comments/{campaignRequestId}");
+        NavigationManager.NavigateTo($"/comments/{campaignRequestId}");
     }
     private async Task ActivateCampaignRequest(CampaignRequest campaign)
     {
@@ -207,7 +208,7 @@
                 try
                 {
 
-                  //  await EmailService.SendCampaignActivationEmail(subject: subject, message: body, requesterEmailAdrress: RequesterEmail, managerEmailAddress: RequestersManagersEmail);
+                    //  await EmailService.SendCampaignActivationEmail(subject: subject, message: body, requesterEmailAdrress: RequesterEmail, managerEmailAddress: RequestersManagersEmail);
                     Snackbar.Add("Campaign request activated successfully", Severity.Success);
                 }
                 catch (Exception emailException)

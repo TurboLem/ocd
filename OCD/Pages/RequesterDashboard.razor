@@ -63,6 +63,7 @@
                         </TemplateColumn>
                         <PropertyColumn Property="x=>x.RequestedDate.Date.ToShortDateString()" Title="Date Requested" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
                         <PropertyColumn Property="x => x.Description" Title="Description" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
+                        <PropertyColumn Property="x => x.SysAidLog" Title="SysAid Log" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" Filterable="true" />
                         <PropertyColumn Property="x=> x.TrackingCode" Title="VDN/TC" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
                         <PropertyColumn Property="x=> x.Campaign.Name" Title="Campaign Type" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
                         <PropertyColumn Property="x=>x.BusinessUnit.UnitName" Title="Business Unit" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
@@ -257,6 +258,7 @@
                         </TemplateColumn>
                         <PropertyColumn Property="x=>x.RequestedDate.Date.ToShortDateString()" Title="Date Requested" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
                         <PropertyColumn Property="x => x.Description" Title="Description" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
+                        <PropertyColumn Property="x => x.SysAidLog" Title="SysAid Log" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" Filterable="true" />
                         <PropertyColumn Property="x=> x.TrackingCode" Title="VDN/TC" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
                         <PropertyColumn Property="x=> x.Campaign.Name" Title="Campaign Type" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
                         <PropertyColumn Property="x=>x.BusinessUnit.UnitName" Title="Business Unit" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
@@ -290,7 +292,7 @@
                                 <MudStack Row>
                                     <MudButton StartIcon="@Icons.Material.Filled.PlayCircle"
                                                Variant="@Variant.Filled"
-                                               Color="Color.Info"
+                                               Color="Color.Warning"
                                                Size="@Size.Small"
                                                OnClick="() => TestVDN(_context.Item.TrackingCode ?? string.Empty)"
                                                Disabled="string.IsNullOrEmpty(_context.Item.TrackingCode)">
@@ -305,7 +307,7 @@
                                     <MudButton StartIcon="@Icons.Material.Filled.Gavel"
                                                Disabled="_context.Item.IsConfirmedByRequester || string.IsNullOrEmpty(_context.Item.TrackingCode)"
                                                Variant="@Variant.Filled"
-                                               Color="Color.Info"
+                                               Color="Color.Success"
                                                Size="@Size.Small"
                                                OnClick="() => ConfirmTestingOfVdn(_context.Item.Id)">
                                         Confirm VDN Test
@@ -362,6 +364,7 @@
                         </TemplateColumn>
                         <PropertyColumn Property="x=>x.RequestedDate.Date.ToShortDateString()" Title="Date Requested" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
                         <PropertyColumn Property="x => x.Description" Title="Description" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
+                        <PropertyColumn Property="x => x.SysAidLog" Title="SysAid Log" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" Filterable="true" />
                         <PropertyColumn Property="x=> x.TrackingCode" Title="VDN/TC" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
                         <PropertyColumn Property="x=> x.Campaign.Name" Title="Campaign Type" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
                         <PropertyColumn Property="x=>x.BusinessUnit.UnitName" Title="Business Unit" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
@@ -483,8 +486,8 @@
             InActiveCampaigns = Campaigns.Where(c => c.IsActive == false).ToList();
             AwaitingActivation = Campaigns.Where(c => c.IsActive == false && c.IsConfirmedByRequester == true).ToList();
             AwaitingTestConfirmation = Campaigns.Where(c => c.IsActive == false && c.IsPending == true && c.IsConfirmedByRequester == false).ToList();
-            
-            
+
+
             totalCampaignsCount = Campaigns.Count();
             activeCampaignsCount = ActiveCampaigns.Count();
             awaitingTestConfirmationCount = AwaitingTestConfirmation.Count();

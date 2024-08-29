@@ -38,6 +38,7 @@
                 </TemplateColumn>
                 <PropertyColumn Property="x=>x.RequestedDate.Date.ToShortDateString()" Title="Date Requested" HeaderStyle="white-space:nowrap" />
                 <PropertyColumn Property="x => x.Description" Title="Description" HeaderStyle="white-space:nowrap" />
+                <PropertyColumn Property="x => x.SysAidLog" Title="SysAid Log" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" Filterable="true" />
                 <PropertyColumn Property="x=> x.TrackingCode" Title="VDN/TC" HeaderStyle="white-space:nowrap" />
                 <PropertyColumn Property="x=> x.Campaign.Name" Title="Campaign Type" HeaderStyle="white-space:nowrap" />
                 <PropertyColumn Property="x=>x.BusinessUnit.UnitName" Title="Business Unit" HeaderStyle="white-space:nowrap" />
@@ -70,7 +71,7 @@
                 <TemplateColumn CellClass=" justify-end" HeaderStyle="white-space:nowrap">
                     <CellTemplate Context="_context">
                         <MudStack Row>
-                            <MudButton Disabled="(_context.Item.IsActive || _context.Item.IsConfirmedByRequester == false)" StartIcon="@Icons.Material.Filled.NotStarted" Variant="@Variant.Filled" Color="Color.Primary" Size="@Size.Small" OnClick="@(async () => await ActivateCampaignRequest(_context.Item))">Activate</MudButton>
+                            <MudButton Disabled="(_context.Item.IsActive || _context.Item.IsConfirmedByRequester == false)" StartIcon="@Icons.Material.Filled.NotStarted" Variant="@Variant.Filled" Color="Color.Success" Size="@Size.Small" OnClick="@(async () => await ActivateCampaignRequest(_context.Item))">Activate</MudButton>
                             @if (_itemLoadingState.GetValueOrDefault(_context.Item.Id, false))
                             {
                                 <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
@@ -163,7 +164,7 @@
     {
         selectedCampaign = campaign;
 
-        NavigationManager.NavigateTo($"/ops/campaigns/one-pack/edit/{campaign.Id}");
+        NavigationManager.NavigateTo($"/ops/campaigns/edit/{campaign.Id}");
     }
     private void ViewComments(int campaignRequestId)
     {
