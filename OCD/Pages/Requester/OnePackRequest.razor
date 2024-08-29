@@ -101,14 +101,17 @@
                                                  Required="true" />
                             </div>
                             <div class="form-group col-md-4">
-                                <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Connex Dialler Campaign" @bind-Value="parentCampaignRequest.ConnexDiallerCampaignId"
-                                           Required="true" RequiredError="Please select a dialler campaign" Variant="Variant.Outlined"
-                                           SelectedValuesChanged="@(EventCallback.Factory.Create<IEnumerable<int>>(this, OnConnexDiallerCampaignChanged))">
-                                    @foreach (var campaign in connexDiallerCampaigns)
-                                    {
-                                        <MudSelectItem T="int" Value="campaign.Id">@campaign.Name</MudSelectItem>
-                                    }
-                                </MudSelect>
+                                <MudAutocomplete T="ConnexDiallerCampaign"
+                                                 Label="Connex Dialler Campaign"
+                                                 Value="SelectedConnexDiallerCampaign"
+                                                 ValueChanged="@(OnSelectedDiallerCampaignChanged)"
+                                                 SearchFunc="@SearchConnexDiallerCampaigns"
+                                                 ToStringFunc="@(c => c == null ? string.Empty : c.Name)"
+                                                 MaxItems="1000"
+                                                 AnchorOrigin="Origin.BottomCenter"
+                                                 Variant="Variant.Outlined"
+                                                 Required="true"
+                                                 RequiredError="Please select a dialler campaign" />
                             </div>
                             <div class="form-group col-md-4">
                                 <MudSelect AnchorOrigin="Origin.BottomCenter" T="int" Label="Connex Dialler Source" @bind-Value="parentCampaignRequest.ConnexDiallerSourceId" Required="true" RequiredError="Please select a dialler source" Variant="Variant.Outlined">
@@ -258,6 +261,7 @@
     private BusinessUnit SelectedBusinessUnit { get; set; } = new();
     private CommunicationType SelectedCommunicationType { get; set; } = new();
     private ConnexDiallerCampaign SelectedConnexDiallerCampaign { get; set; } = new();
+    private int SelectedConnexDiallerCampaignId => SelectedConnexDiallerCampaign?.Id ?? 0;
     private ConnexDiallerSource SelectedConnexDiallerSource { get; set; } = new();
     private BrokerCode SelectedBrokerCode { get; set; } = new();
     private Campaign SelectedCampaign { get; set; } = new();
@@ -319,12 +323,18 @@
             communicationTypes = await context.CommunicationTypes.AsNoTracking().ToListAsync();
             connexDiallerCampaigns = await context.ConnexDiallerCampaigns.AsNoTracking().ToListAsync();
             brokerCodes = await context.BrokerCodes.AsNoTracking().ToListAsync();
-            
+
 
         }
         DateRangeCR = new DateRange(parentCampaignRequest.StartDate, parentCampaignRequest.EndDate);
 
     }
+    private async Task OnSelectedDiallerCampaignChanged(ConnexDiallerCampaign diallerCampaign)
+    {
+        SelectedConnexDiallerCampaign = diallerCampaign;
+        await OnConnexDiallerCampaignChanged(new[] { diallerCampaign.Id });
+    }
+
     private async Task OnConnexDiallerCampaignChanged(IEnumerable<int> selectedValues)
     {
         var selectedDiallerCampaignId = selectedValues.FirstOrDefault();
@@ -336,6 +346,7 @@
 
         StateHasChanged();
     }
+
     private void OnDateRangeChanged(DateRange newDateRange)
     {
         _dateRangeCR = newDateRange;
@@ -364,7 +375,7 @@
                         ChannelId = SelectedChannel.Id,
                         SourceId = SelectedSource.Id,
                         SourceBreakId = SelectedSourceBreak.Id,
-                        ConnexDiallerCampaignId = parentCampaignRequest.ConnexDiallerCampaignId,
+                        ConnexDiallerCampaignId = SelectedConnexDiallerCampaignId,
                         ConnexDiallerSourceId = parentCampaignRequest.ConnexDiallerSourceId,
                         SlotId = SelectedSlot.Id,
                         MediaId = SelectedMedia.Id,
@@ -378,7 +389,7 @@
                         TrackingCode = null,
                         CampaignRequestMainId = null,
                         PackTypeId = 1,
-                        RequesterId = userId, 
+                        RequesterId = userId,
                         ActionedBy = null,
                         ActionedDate = null,
                         IsConfirmedByRequester = false,
