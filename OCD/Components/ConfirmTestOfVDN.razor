@@ -22,14 +22,18 @@
     </DialogContent>
     <DialogActions>
         <MudButton Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Warning" Disabled="!isValid" OnClick="Submit">Submit</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Warning" Disabled="!isValid || isLoading" OnClick="Submit">Submit</MudButton>
+        @if (isLoading)
+        {
+            <MudProgressCircular Indeterminate="true" Size="Size.Medium" Class="ml-2" />
+        }
     </DialogActions>
 </MudDialog>
 
 @code {
     private MudForm form;
     private bool isValid;
-
+    private bool isLoading = false;
     private bool isTested = false;
     private bool isVerified = false;
     private bool isConfirmed = false;
@@ -49,55 +53,68 @@
     }
     private async Task Submit()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        var name = user.FindFirst(ClaimTypes.GivenName)?.Value;
-        var surname = user.FindFirst(ClaimTypes.Surname)?.Value;
-        if (form.IsValid)
+       
+        if (isLoading)
         {
-            if (isTested && isVerified && isConfirmed && isApproved)
+            return;
+        }
+        isLoading = true;
+        StateHasChanged();
+        try
+        {
+            await form.Validate();
+            if(!form.IsValid)
             {
-                using (var context = await DbContextFactory.CreateDbContextAsync())
+                Snackbar.Add("Please confirm all the checkboxes", Severity.Error);
+                return;
+            }
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var name = user.FindFirst(ClaimTypes.GivenName)?.Value;
+            var surname = user.FindFirst(ClaimTypes.Surname)?.Value;
+
+            Campaign.IsConfirmedByRequester = true;
+            using (var context = await DbContextFactory.CreateDbContextAsync())
+            {
+                using (var transaction = context.Database.BeginTransaction())
                 {
-                    Campaign.IsConfirmedByRequester = true;
-                    context.Update(Campaign);
-                    var result = await context.SaveChangesAsync();
-                    if (result > 0)
+                    try
                     {
+
+                        context.Update(Campaign);
+                        await context.SaveChangesAsync();
+
                         string message = $@"
-                <html>
-                <body>
-                    <p>Dear Team,</p>
-                    <p><strong>{name} {surname}</strong> has confirmed the following for {Campaign.Description}:</p>
-                    <ul>
-                        <li>I have tested the new campaign & received a call back.</li>
-                        <li>I have verified with the agent that brand/tracking code/VDN is correct.</li>
-                        <li>I have confirmed with the agent to close contact/lead as a test.</li>
-                        <li>I have approved the campaign to go live.</li>
-                    </ul>
-                </body>
-                </html>";
-                          await EmailService.SendTestEmail($"Test VDN Confirmation for {Campaign.Description}", message);
-
+                                <html>
+                                <body>
+                                    <p>Dear Team,</p>
+                                    <p><strong>{name} {surname}</strong> has confirmed the following for {Campaign.Description}:</p>
+                                    <ul>
+                                        <li>I have tested the new campaign & received a call back.</li>
+                                        <li>I have verified with the agent that brand/tracking code/VDN is correct.</li>
+                                        <li>I have confirmed with the agent to close contact/lead as a test.</li>
+                                        <li>I have approved the campaign to go live.</li>
+                                    </ul>
+                                </body>
+                                </html>";
+                       // await EmailService.SendTestEmail($"Test VDN Confirmation for {Campaign.Description}", message);
+                        await transaction.CommitAsync();
                         Snackbar.Add("Confirmation email has been sent to Ops team", Severity.Success);
-                        NavigationManager.NavigateTo("/requester-dashboard");
-                    }
-                    else
-                    {
-                        Snackbar.Add("Failed to send confirmation", Severity.Error);
-                    }
 
+                    }
+                    catch (Exception exception)
+                    {
+                        transaction.Rollback();
+                        Snackbar.Add("An error occurred while confirming. Please try again later", Severity.Error);
+                    }
                 }
             }
         }
-        else
+        finally
         {
-            Snackbar.Add("Please confirm all the checkboxes", Severity.Error);
+            isLoading = false;
+            StateHasChanged();
         }
-
-
-
-
         MudDialog.Close();
     }
     private void Cancel()
