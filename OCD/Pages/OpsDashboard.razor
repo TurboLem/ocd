@@ -310,8 +310,8 @@
             inactiveCampaignsCount = ListCampaigns.Where(c => c.IsActive == false).Count();
             pendingCampaignsCount = ListCampaigns.Where(c => c.IsPending == true).Count();
             Campaigns = ListCampaigns;
-            AwaitingTestConfirmation = Campaigns.Where(c => c.IsConfirmedByRequester == false && (c.TrackingCode is not null || c.SmsNumber is not null || c.SharecallNumber is not null)).ToList();
-            AwaitingActivation = Campaigns.Where(c => c.IsActive == false && c.IsPending == false && c.IsConfirmedByRequester == true).ToList();
+            AwaitingTestConfirmation = Campaigns.Where(c => c.IsConfirmedByRequester == false && c.IsActive == false && (c.TrackingCode is not null || c.SmsNumber is not null || c.SharecallNumber is not null)).ToList();
+            AwaitingActivation = Campaigns.Where(c => c.IsActive == false && c.IsPending == true && c.IsConfirmedByRequester == true).ToList();
 
             awaitingActivationCount = AwaitingActivation.Count();
             awaitingTestConfirmationCount = AwaitingTestConfirmation.Count();
