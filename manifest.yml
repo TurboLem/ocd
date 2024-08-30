@@ -68,6 +68,11 @@ spec:
                   name: online-campaign-dashboard-secrets
                   key: GMAIL_SMTP_PASS
 
+            - name: OCD_SMTP_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: online-campaign-dashboard-secrets
+                  key: OCD_SMTP_PASS
           ports:
             - containerPort: 5000
               name: http-fix
