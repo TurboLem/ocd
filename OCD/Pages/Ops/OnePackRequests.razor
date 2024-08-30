@@ -14,18 +14,12 @@
 
 <AuthorizeView Roles="Ops">
     <Authorized>
-
-
-
-        @* <MudText Typo="Typo.h6">One Pack Campaigns</MudText> *@
         <div class="mb-3 d-flex align-items-center">
         </div>
         <MudDataGrid Class="shadow-md rounded-lg border grid mt-7" Items="@Campaigns" HorizontalScrollbar="true" Hover="true" Striped="true" RowsPerPageOptions="new int[] { 10, 25, 50, 100 }" FixedHeader="true" Height="65vh" RowsPerPage="10" Style="background-color:white;">
             <ToolBarContent>
                 <MudText Typo="Typo.h6">One Pack Campaigns</MudText>
                 <MudSpacer />
-                @* <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
-                AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField> *@
             </ToolBarContent>
             <Columns>
                 <PropertyColumn Property="x => x.Id" Title="Campaign Id" HeaderStyle="white-space:nowrap" />
@@ -52,7 +46,6 @@
                 <PropertyColumn Property="x=> x.Media.Name" Title="Media" HeaderStyle="white-space:nowrap" />
                 <PropertyColumn Property="x=> x.Slot.Name" Title="Slot" HeaderStyle="white-space:nowrap" />
                 <PropertyColumn Property="x=> x.SourceBreak.Name" Title="Source Break" HeaderStyle="white-space:nowrap" />
-                @* <PropertyColumn Property="x=> x.PackType.Type" Title="Pack" HeaderStyle="white-space:nowrap" /> *@
                 <PropertyColumn Property="x=> x.Publication.Name" Title="Publication" HeaderStyle="white-space:nowrap" />
                 <PropertyColumn Property="x=> x.PublicationOwner.Name" Title="Publication Owner" HeaderStyle="white-space:nowrap" />
                 <PropertyColumn Property="x=> x.Channel.Name" Title="Channel" HeaderStyle="white-space:nowrap" />
