@@ -5,6 +5,7 @@
 @using OCD.Services.CampaignRequestService
 @inherits OwningComponentBase<ICampaignRequestService>
 @inject IDbContextFactory<DataContext> DbContextFactory
+@inject IDialogService DialogService
 <AuthorizeView Roles="Superuser">
     <Authorized>
 
@@ -12,151 +13,139 @@
             <MudChipSet T="Color">
                 <MudChip Color="Color.Primary" Variant="Variant.Filled">@totalCampaignsCount Total</MudChip>
                 <MudChip Color="Color.Success" Variant="Variant.Filled">@activeCampaignsCount Active</MudChip>
-                <MudChip Color="Color.Warning" Variant="Variant.Filled">@inactiveCampaignsCount Inactive</MudChip>
-                <MudChip Color="Color.Secondary" Variant="Variant.Filled">@pendingCampaignsCount pending</MudChip>
+                <MudChip Color="Color.Secondary" Variant="Variant.Filled">@awaitingTestConfirmationCount Awaiting VDN test/confirmation</MudChip>
+                <MudChip Color="Color.Warning" Variant="Variant.Filled">@awaitingActivationCount Awaiting activation</MudChip>
             </MudChipSet>
         </div>
-        <MudTabs ApplyEffectsToContainer="true" @bind-ActivePanelIndex="activeIndex">
-            <MudTabPanel Text="Campaigns" Icon="@Icons.Material.Filled.Dashboard">
+        <MudTabs ApplyEffectsToContainer="true" @bind-ActivePanelIndex="activeIndex" Centered="true">
+            <MudTabPanel Text="Campaigns" Icon="@Icons.Material.Filled.ViewList">
 
 
                 <div class="mb-3 d-flex align-items-center">
                 </div>
-                <MudDataGrid Class="shadow-md rounded-lg border grid mt-7" Items="@Campaigns" HorizontalScrollbar="true" Hover="true" Striped="true" RowsPerPageOptions="new int[] { 10, 25, 50, 100 }" FixedHeader="true" Height="65vh" RowsPerPage="10" Style="background-color:white;">
-                    @* <ToolBarContent>
-                    <MudText Typo="Typo.h6">All Campaigns</MudText>
-                    <MudSpacer />
-                    <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
-                    AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-                    </ToolBarContent> *@
+                <MudDataGrid Class="shadow-md rounded-lg border grid mt-7"
+                             Items="@Campaigns"
+                             Hover="true"
+                             Striped="true"
+                             FixedHeader="true"
+                             Height="65vh"
+                             RowsPerPage="10"
+                             Style="background-color:white;"
+                             QuickFilter="@_quickFilter">
+                    <ToolBarContent>
+                        <MudText Typo="Typo.h6">All Campaigns</MudText>
+                        <MudSpacer />
+                        <div class="col-md-4">
+                            <MudTextField @bind-Value="SearchTrackingCode"
+                                          Placeholder="Search by VDN/Tracking Code"
+                                          Adornment="Adornment.Start"
+                                          Immediate="true"
+                                          AdornmentIcon="@Icons.Material.Filled.Search"
+                                          IconSize="Size.Medium" Class="mt-2" />
+                        </div>
+                    </ToolBarContent>
                     <Columns>
                         <PropertyColumn Property="x => x.Id" Title="Campaign Id" HeaderStyle="white-space:nowrap" />
-                        <TemplateColumn Title="Owner" HeaderStyle="white-space:nowrap">
+                        <TemplateColumn Title="Owner" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap">
                             <CellTemplate Context="_context">
                                 <MudStack Row>
                                     <MudText Style="font-size:14px">@_context.Item.Requester.Name @_context.Item.Requester.Surname</MudText>
                                 </MudStack>
                             </CellTemplate>
                         </TemplateColumn>
-                        <PropertyColumn Property="x=>x.RequestedDate.Date.ToShortDateString()" Title="Date Requested" HeaderStyle="white-space:nowrap" />
+                        <PropertyColumn Property="x=>x.RequestedDate.Date.ToShortDateString()" Title="Date Requested" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
                         <PropertyColumn Property="x => x.Description" Title="Description" HeaderStyle="white-space:nowrap" />
                         <PropertyColumn Property="x => x.SysAidLog" Title="SysAid Log" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" Filterable="true" />
-                        <PropertyColumn Property="x=> x.TrackingCode" Title="VDN/TC" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.Campaign.Name" Title="Campaign Type" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=>x.BusinessUnit.UnitName" Title="Business Unit" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x => x.CampaignRequestBrands" Title="Brand" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.CampaignBrokerCodes" Title="Broker Code" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.ConnexDiallerCampaign.Name" Title="Dialler Campaign" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.ConnexDiallerSource.Name" Title="Dialler Source" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.CommunicationType.Name" Title="Telecom Type" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.SmsNumber" Title="SMS Number" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.SharecallNumber" Title="SCN Number" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.Media.Name" Title="Media" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.Slot.Name" Title="Slot" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.SourceBreak.Name" Title="Source Break" HeaderStyle="white-space:nowrap" />
-                        @* <PropertyColumn Property="x=> x.PackType.Type" Title="Pack" HeaderStyle="white-space:nowrap" /> *@
-                        <PropertyColumn Property="x=> x.Publication.Name" Title="Publication" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.PublicationOwner.Name" Title="Publication Owner" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.Channel.Name" Title="Channel" HeaderStyle="white-space:nowrap" />
+                        <PropertyColumn Property="x=> x.TrackingCode" Title="VDN/TC" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
+                        <PropertyColumn Property="x=> x.Campaign.Name" Title="Campaign Type" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
+                        <PropertyColumn Property="x=>x.BusinessUnit.UnitName" Title="Business Unit" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
+                        <PropertyColumn Property="x => x.CampaignRequestBrands" Title="Brand" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
+                        <PropertyColumn Property="x=> x.CampaignBrokerCodes" Title="Broker Code" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" />
+                        <PropertyColumn Property="x=> x.ConnexDiallerCampaign.Name" Title="Dialler Campaign" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.ConnexDiallerSource.Name" Title="Dialler Source" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.CommunicationType.Name" Title="Telecom Type" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.SmsNumber" Title="SMS Number" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.SharecallNumber" Title="SCN Number" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.Media.Name" Title="Media" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.Slot.Name" Title="Slot" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.SourceBreak.Name" Title="Source Break" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.Publication.Name" Title="Publication" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.PublicationOwner.Name" Title="Publication Owner" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.Channel.Name" Title="Channel" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
 
                         <PropertyColumn Property="x => x.StartDate!.Value.Date.ToShortDateString()" Title="Start Date" HeaderStyle="white-space:nowrap" />
                         <PropertyColumn Property="x => x.EndDate!.Value.Date.ToShortDateString()" Title="End Date" HeaderStyle="white-space:nowrap" />
-
+                        <TemplateColumn CellClass=" justify-end" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap">
+                            <CellTemplate Context="_context">
+                                <MudStack Row>
+                                    <MudButton StartIcon="@Icons.Material.Filled.PlayCircle"
+                                               Variant="@Variant.Filled"
+                                               Color="Color.Info"
+                                               Size="@Size.Small"
+                                               OnClick="() => TestVDN(_context.Item.TrackingCode ?? string.Empty)"
+                                               Disabled="string.IsNullOrEmpty(_context.Item.TrackingCode) && !_context.Item.IsActive">
+                                        Test VDN
+                                    </MudButton>
+                                </MudStack>
+                            </CellTemplate>
+                        </TemplateColumn>
                     </Columns>
                     <PagerContent>
                         <MudDataGridPager />
                     </PagerContent>
                 </MudDataGrid>
             </MudTabPanel>
-            <MudTabPanel Text="Active Campaigns">
-                <div class="mb-3 d-flex align-items-center">
-                    <MudTextField @bind-Value="searchString" Placeholder="Search by description..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="mr-3" Style="width: 300px;" />
-                    <MudSelect @bind-Value="selectedCampaignType" Label="All campaign types" T="string" Style="width: 100px;">
-                        <MudSelectItem Value="@("All")">All</MudSelectItem>
-                        <MudSelectItem Value="@("Active")">Active</MudSelectItem>
-                        <MudSelectItem Value="@("Inactive")">Inactive</MudSelectItem>
-                        <MudSelectItem Value="@("Completed")">Completed</MudSelectItem>
-                    </MudSelect>
-                </div>
-                <MudDataGrid Class="shadow-md rounded-lg border grid mt-7" Items="@ActiveCampaigns" HorizontalScrollbar="true" Hover="true" Striped="true" RowsPerPageOptions="new int[] { 10, 25, 50, 100 }" FixedHeader="true" Height="65vh" RowsPerPage="10" Style="background-color:white;">
-                    <Columns>
-                        <PropertyColumn Property="x => x.Id" Title="Campaign Id" HeaderStyle="white-space:nowrap" />
-                        <TemplateColumn Title="Owner" HeaderStyle="white-space:nowrap">
-                            <CellTemplate Context="_context">
-                                <MudStack Row>
-                                    <MudText Style="font-size:14px">@_context.Item.Requester.Name @_context.Item.Requester.Surname</MudText>
-                                </MudStack>
-                            </CellTemplate>
-                        </TemplateColumn>
-                        <PropertyColumn Property="x=>x.RequestedDate.Date.ToShortDateString()" Title="Date Requested" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x => x.Description" Title="Description" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x => x.SysAidLog" Title="SysAid Log" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" Filterable="true" />
-                        <PropertyColumn Property="x=> x.TrackingCode" Title="VDN/TC" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.Campaign.Name" Title="Campaign Type" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=>x.BusinessUnit.UnitName" Title="Business Unit" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x => x.CampaignRequestBrands" Title="Brand" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.CampaignBrokerCodes" Title="Broker Code" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.ConnexDiallerCampaign.Name" Title="Dialler Campaign" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.ConnexDiallerSource.Name" Title="Dialler Source" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.CommunicationType.Name" Title="Telecom Type" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.SmsNumber" Title="SMS Number" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.SharecallNumber" Title="SCN Number" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.Media.Name" Title="Media" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.Slot.Name" Title="Slot" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.SourceBreak.Name" Title="Source Break" HeaderStyle="white-space:nowrap" />
-                        @* <PropertyColumn Property="x=> x.PackType.Type" Title="Pack" HeaderStyle="white-space:nowrap" /> *@
-                        <PropertyColumn Property="x=> x.Publication.Name" Title="Publication" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.PublicationOwner.Name" Title="Publication Owner" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.Channel.Name" Title="Channel" HeaderStyle="white-space:nowrap" />
+            <MudTabPanel Text="Active Campaigns" Icon="@Icons.Material.Filled.FactCheck">
 
-                        <PropertyColumn Property="x => x.StartDate!.Value.Date.ToShortDateString()" Title="Start Date" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x => x.EndDate!.Value.Date.ToShortDateString()" Title="End Date" HeaderStyle="white-space:nowrap" />
-                    </Columns>
-                    <PagerContent>
-                        <MudDataGridPager />
-                    </PagerContent>
-                </MudDataGrid>
-            </MudTabPanel>
-            <MudTabPanel Text="Inactive Campaigns">
-                <div class="mb-3 d-flex align-items-center">
-                    <MudTextField @bind-Value="searchString" Placeholder="Search by description..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="mr-3" Style="width: 300px;" />
-                    <MudSelect @bind-Value="selectedCampaignType" Label="All campaign types" T="string" Style="width: 100px;">
-                        <MudSelectItem Value="@("All")">All</MudSelectItem>
-                        <MudSelectItem Value="@("Active")">Active</MudSelectItem>
-                        <MudSelectItem Value="@("Inactive")">Inactive</MudSelectItem>
-                        <MudSelectItem Value="@("Completed")">Completed</MudSelectItem>
-                    </MudSelect>
-                </div>
-                <MudDataGrid Class="shadow-md rounded-lg border grid mt-7" Items="@InActiveCampaigns" HorizontalScrollbar="true" Hover="true" Striped="true" RowsPerPageOptions="new int[] { 10, 25, 50, 100 }" FixedHeader="true" Height="65vh" RowsPerPage="10" Style="background-color:white;">
+                <MudDataGrid Class="shadow-md rounded-lg border grid mt-7"
+                             Items="@ActiveCampaigns"
+                             Hover="true"
+                             Striped="true"
+                             FixedHeader="true"
+                             Height="65vh"
+                             RowsPerPage="10"
+                             Style="background-color:white;"
+                             QuickFilter="@_quickFilter">
+                    <ToolBarContent>
+                        <MudText Typo="Typo.h6">Active Campaigns</MudText>
+                        <MudSpacer />
+                        <div class="col-md-4">
+                            <MudTextField @bind-Value="SearchTrackingCode"
+                                          Placeholder="Search by VDN/Tracking Code"
+                                          Adornment="Adornment.Start"
+                                          Immediate="true"
+                                          AdornmentIcon="@Icons.Material.Filled.Search"
+                                          IconSize="Size.Medium" Class="mt-2" />
+                        </div>
+                    </ToolBarContent>
                     <Columns>
                         <PropertyColumn Property="x => x.Id" Title="Campaign Id" HeaderStyle="white-space:nowrap" />
-                        <TemplateColumn Title="Owner" HeaderStyle="white-space:nowrap">
+                        <TemplateColumn Title="Owner" HeaderStyle="white-space:nowrap"CellStyle=" white-space: nowrap">
                             <CellTemplate Context="_context">
                                 <MudStack Row>
                                     <MudText Style="font-size:14px">@_context.Item.Requester.Name @_context.Item.Requester.Surname</MudText>
                                 </MudStack>
                             </CellTemplate>
                         </TemplateColumn>
-                        <PropertyColumn Property="x=>x.RequestedDate.Date.ToShortDateString()" Title="Date Requested" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x => x.Description" Title="Description" HeaderStyle="white-space:nowrap" />
+                        <PropertyColumn Property="x=>x.RequestedDate.Date.ToShortDateString()" Title="Date Requested" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x => x.Description" Title="Description" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
                         <PropertyColumn Property="x => x.SysAidLog" Title="SysAid Log" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" Filterable="true" />
-                        <PropertyColumn Property="x=> x.TrackingCode" Title="VDN/TC" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.Campaign.Name" Title="Campaign Type" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=>x.BusinessUnit.UnitName" Title="Business Unit" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x => x.CampaignRequestBrands" Title="Brand" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.CampaignBrokerCodes" Title="Broker Code" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.ConnexDiallerCampaign.Name" Title="Dialler Campaign" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.ConnexDiallerSource.Name" Title="Dialler Source" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.CommunicationType.Name" Title="Telecom Type" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.SmsNumber" Title="SMS Number" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.SharecallNumber" Title="SCN Number" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.Media.Name" Title="Media" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.Slot.Name" Title="Slot" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.SourceBreak.Name" Title="Source Break" HeaderStyle="white-space:nowrap" />
-                        @* <PropertyColumn Property="x=> x.PackType.Type" Title="Pack" HeaderStyle="white-space:nowrap" /> *@
-                        <PropertyColumn Property="x=> x.Publication.Name" Title="Publication" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.PublicationOwner.Name" Title="Publication Owner" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.Channel.Name" Title="Channel" HeaderStyle="white-space:nowrap" />
+                        <PropertyColumn Property="x=> x.TrackingCode" Title="VDN/TC" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.Campaign.Name" Title="Campaign Type" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=>x.BusinessUnit.UnitName" Title="Business Unit" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x => x.CampaignRequestBrands" Title="Brand" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.CampaignBrokerCodes" Title="Broker Code" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.ConnexDiallerCampaign.Name" Title="Dialler Campaign" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.ConnexDiallerSource.Name" Title="Dialler Source" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.CommunicationType.Name" Title="Telecom Type" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.SmsNumber" Title="SMS Number" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.SharecallNumber" Title="SCN Number" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.Media.Name" Title="Media" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.Slot.Name" Title="Slot" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.SourceBreak.Name" Title="Source Break" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.Publication.Name" Title="Publication" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.PublicationOwner.Name" Title="Publication Owner" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.Channel.Name" Title="Channel" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
 
                         <PropertyColumn Property="x => x.StartDate!.Value.Date.ToShortDateString()" Title="Start Date" HeaderStyle="white-space:nowrap" />
                         <PropertyColumn Property="x => x.EndDate!.Value.Date.ToShortDateString()" Title="End Date" HeaderStyle="white-space:nowrap" />
@@ -166,46 +155,118 @@
                     </PagerContent>
                 </MudDataGrid>
             </MudTabPanel>
-            <MudTabPanel Text="Pending Campaigns">
-                <div class="mb-3 d-flex align-items-center">
-                    <MudTextField @bind-Value="searchString" Placeholder="Search by description..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="mr-3" Style="width: 300px;" />
-                    <MudSelect @bind-Value="selectedCampaignType" Label="All campaign types" T="string" Style="width: 100px;">
-                        <MudSelectItem Value="@("All")">All</MudSelectItem>
-                        <MudSelectItem Value="@("Active")">Active</MudSelectItem>
-                        <MudSelectItem Value="@("Inactive")">Inactive</MudSelectItem>
-                        <MudSelectItem Value="@("Completed")">Completed</MudSelectItem>
-                    </MudSelect>
-                </div>
-                <MudDataGrid Class="shadow-md rounded-lg border grid mt-7" Items="@PendingCampaigns" HorizontalScrollbar="true" Hover="true" Striped="true" RowsPerPageOptions="new int[] { 10, 25, 50, 100 }" FixedHeader="true" Height="65vh" RowsPerPage="10" Style="background-color:white;">
+            <MudTabPanel Icon="@Icons.Material.Filled.PendingActions" Text="Awaiting Testing" ToolTip="Requests awaiting testing and confirmation of working VDN">
+
+                <MudDataGrid Class="shadow-md rounded-lg border grid mt-7"
+                             Items="@AwaitingTestConfirmation"
+                             HorizontalScrollbar="true"
+                             Hover="true"
+                             Striped="true"
+                             FixedHeader="true"
+                             Height="65vh"
+                             RowsPerPage="10"
+                             Style="background-color:white;"
+                             QuickFilter="@_quickFilter">
+                    <ToolBarContent>
+                        <MudText Typo="Typo.h6">Awaiting Testing & Confirmation</MudText>
+                        <MudSpacer />
+                        <div class="col-md-4">
+                            <MudTextField @bind-Value="SearchTrackingCode"
+                                          Placeholder="Search by VDN/Tracking Code"
+                                          Adornment="Adornment.Start"
+                                          Immediate="true"
+                                          AdornmentIcon="@Icons.Material.Filled.Search"
+                                          IconSize="Size.Medium" Class="mt-2" />
+                        </div>
+                    </ToolBarContent>
                     <Columns>
                         <PropertyColumn Property="x => x.Id" Title="Campaign Id" HeaderStyle="white-space:nowrap" />
-                        <TemplateColumn Title="Owner" HeaderStyle="white-space:nowrap">
+                        <TemplateColumn Title="Owner" HeaderStyle="white-space:nowrap"CellStyle=" white-space: nowrap">
                             <CellTemplate Context="_context">
                                 <MudStack Row>
                                     <MudText Style="font-size:14px">@_context.Item.Requester.Name @_context.Item.Requester.Surname</MudText>
                                 </MudStack>
                             </CellTemplate>
                         </TemplateColumn>
-                        <PropertyColumn Property="x=>x.RequestedDate.Date.ToShortDateString()" Title="Date Requested" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x => x.Description" Title="Description" HeaderStyle="white-space:nowrap" />
+                        <PropertyColumn Property="x=>x.RequestedDate.Date.ToShortDateString()" Title="Date Requested" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x => x.Description" Title="Description" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
                         <PropertyColumn Property="x => x.SysAidLog" Title="SysAid Log" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" Filterable="true" />
-                        <PropertyColumn Property="x=> x.TrackingCode" Title="VDN/TC" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.Campaign.Name" Title="Campaign Type" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=>x.BusinessUnit.UnitName" Title="Business Unit" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x => x.CampaignRequestBrands" Title="Brand" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.CampaignBrokerCodes" Title="Broker Code" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.ConnexDiallerCampaign.Name" Title="Dialler Campaign" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.ConnexDiallerSource.Name" Title="Dialler Source" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.CommunicationType.Name" Title="Telecom Type" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.SmsNumber" Title="SMS Number" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.SharecallNumber" Title="SCN Number" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.Media.Name" Title="Media" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.Slot.Name" Title="Slot" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.SourceBreak.Name" Title="Source Break" HeaderStyle="white-space:nowrap" />
-                        @* <PropertyColumn Property="x=> x.PackType.Type" Title="Pack" HeaderStyle="white-space:nowrap" /> *@
-                        <PropertyColumn Property="x=> x.Publication.Name" Title="Publication" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.PublicationOwner.Name" Title="Publication Owner" HeaderStyle="white-space:nowrap" />
-                        <PropertyColumn Property="x=> x.Channel.Name" Title="Channel" HeaderStyle="white-space:nowrap" />
+                        <PropertyColumn Property="x=> x.TrackingCode" Title="VDN/TC" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.Campaign.Name" Title="Campaign Type" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=>x.BusinessUnit.UnitName" Title="Business Unit" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x => x.CampaignRequestBrands" Title="Brand" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.CampaignBrokerCodes" Title="Broker Code" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.ConnexDiallerCampaign.Name" Title="Dialler Campaign" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.ConnexDiallerSource.Name" Title="Dialler Source" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.CommunicationType.Name" Title="Telecom Type" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.SmsNumber" Title="SMS Number" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.SharecallNumber" Title="SCN Number" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.Media.Name" Title="Media" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.Slot.Name" Title="Slot" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.SourceBreak.Name" Title="Source Break" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.Publication.Name" Title="Publication" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.PublicationOwner.Name" Title="Publication Owner" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.Channel.Name" Title="Channel" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+
+                        <PropertyColumn Property="x => x.StartDate!.Value.Date.ToShortDateString()" Title="Start Date" HeaderStyle="white-space:nowrap" />
+                        <PropertyColumn Property="x => x.EndDate!.Value.Date.ToShortDateString()" Title="End Date" HeaderStyle="white-space:nowrap" />
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager />
+                    </PagerContent>
+                </MudDataGrid>
+            </MudTabPanel>
+            <MudTabPanel Icon="@Icons.Material.Filled.Pending" Text="Awaiting Activation" ToolTip="Requests awaiting activation">
+
+                <MudDataGrid Class="shadow-md rounded-lg border grid mt-7"
+                             Items="@AwaitingActivation"
+                             Hover="true"
+                             Striped="true"
+                             FixedHeader="true"
+                             Height="65vh"
+                             RowsPerPage="10"
+                             Style="background-color:white;"
+                             QuickFilter="@_quickFilter">
+                    <ToolBarContent>
+                        <MudText Typo="Typo.h6">Awaiting Activation</MudText>
+                        <MudSpacer />
+                        <div class="col-md-4">
+                            <MudTextField @bind-Value="SearchTrackingCode"
+                                          Placeholder="Search by VDN/Tracking Code"
+                                          Adornment="Adornment.Start"
+                                          Immediate="true"
+                                          AdornmentIcon="@Icons.Material.Filled.Search"
+                                          IconSize="Size.Medium" Class="mt-2" />
+                        </div>
+                    </ToolBarContent>
+                    <Columns>
+                        <PropertyColumn Property="x => x.Id" Title="Campaign Id" HeaderStyle="white-space:nowrap" />
+                        <TemplateColumn Title="Owner" HeaderStyle="white-space:nowrap"CellStyle=" white-space: nowrap">
+                            <CellTemplate Context="_context">
+                                <MudStack Row>
+                                    <MudText Style="font-size:14px">@_context.Item.Requester.Name @_context.Item.Requester.Surname</MudText>
+                                </MudStack>
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <PropertyColumn Property="x=>x.RequestedDate.Date.ToShortDateString()" Title="Date Requested" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x => x.Description" Title="Description" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x => x.SysAidLog" Title="SysAid Log" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap" Filterable="true" />
+                        <PropertyColumn Property="x=> x.TrackingCode" Title="VDN/TC" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.Campaign.Name" Title="Campaign Type" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=>x.BusinessUnit.UnitName" Title="Business Unit" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x => x.CampaignRequestBrands" Title="Brand" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.CampaignBrokerCodes" Title="Broker Code" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.ConnexDiallerCampaign.Name" Title="Dialler Campaign" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.ConnexDiallerSource.Name" Title="Dialler Source" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.CommunicationType.Name" Title="Telecom Type" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.SmsNumber" Title="SMS Number" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.SharecallNumber" Title="SCN Number" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.Media.Name" Title="Media" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.Slot.Name" Title="Slot" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.SourceBreak.Name" Title="Source Break" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.Publication.Name" Title="Publication" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.PublicationOwner.Name" Title="Publication Owner" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
+                        <PropertyColumn Property="x=> x.Channel.Name" Title="Channel" HeaderStyle="white-space:nowrap" CellStyle=" white-space: nowrap"/>
 
                         <PropertyColumn Property="x => x.StartDate!.Value.Date.ToShortDateString()" Title="Start Date" HeaderStyle="white-space:nowrap" />
                         <PropertyColumn Property="x => x.EndDate!.Value.Date.ToShortDateString()" Title="End Date" HeaderStyle="white-space:nowrap" />
@@ -228,28 +289,25 @@
     private int activeIndex;
     private string searchString = string.Empty;
     private string selectedCampaignType = "All";
-    private CampaignRequest selectedCampaign = null;
+    private CampaignRequest selectedCampaign = null!;
     private ApplicationUser Requester = new();
-    private string SysAidLog = string.Empty;
-    private string BusinessUnit = string.Empty;
-    private string CampaignType = string.Empty;
-    private string CampaignStatus = string.Empty;
-    private string Description = string.Empty;
     private int totalCampaignsCount;
     private int activeCampaignsCount;
     private int inactiveCampaignsCount;
     private int pendingCampaignsCount;
-    private string _searchString;
+    private int awaitingActivationCount;
+    private int awaitingTestConfirmationCount;
+    private string SearchTrackingCode { get; set; } = string.Empty;
+    private string Vdn = string.Empty;
+    private IEnumerable<CampaignRequest> ListCampaigns { get; set; } = [];
+    private IEnumerable<CampaignRequest> ActiveCampaigns { get; set; } = [];
+    private IEnumerable<CampaignRequest> InActiveCampaigns { get; set; } = [];
+    private IEnumerable<CampaignRequest> PendingCampaigns { get; set; } = [];
+    private IEnumerable<CampaignRequest> Campaigns { get; set; } = [];
+    private IEnumerable<CampaignRequest> AwaitingTestConfirmation { get; set; } = [];
+    private IEnumerable<CampaignRequest> AwaitingActivation { get; set; } = [];
 
-    [Inject]
-    private NavigationManager NavigationManager { get; set; }
-    private IEnumerable<CampaignRequest> ListCampaigns { get; set; }
-    private IEnumerable<CampaignRequest> ActiveCampaigns { get; set; }
-    private IEnumerable<CampaignRequest> InActiveCampaigns { get; set; }
-    private IEnumerable<CampaignRequest> PendingCampaigns { get; set; }
-    private IEnumerable<CampaignRequest> Campaigns { get; set; }
-    private IEnumerable<CampaignRequest> FilteredCampaigns => Campaigns?.Where(c => string.IsNullOrEmpty(searchString) || c.Description.Contains(searchString, StringComparison.OrdinalIgnoreCase));
-    private IEnumerable<ApplicationUser> Requesters { get; set; }
+    
     protected override async Task OnInitializedAsync()
     {
 
@@ -266,11 +324,45 @@
             inactiveCampaignsCount = ListCampaigns.Where(c => c.IsActive == false).Count();
             pendingCampaignsCount = ListCampaigns.Where(c => c.IsPending == true).Count();
             Campaigns = ListCampaigns;
+            AwaitingTestConfirmation = Campaigns.Where(c => c.IsConfirmedByRequester == false && c.IsActive == false && (c.TrackingCode is not null || c.SmsNumber is not null || c.SharecallNumber is not null)).ToList();
+            AwaitingActivation = Campaigns.Where(c => c.IsActive == false && c.IsPending == true && c.IsConfirmedByRequester == true).ToList();
+
+            awaitingActivationCount = AwaitingActivation.Count();
+            awaitingTestConfirmationCount = AwaitingTestConfirmation.Count();
         }
 
 
     }
+    private Func<CampaignRequest, bool> _quickFilter => x =>
+      {
+          if (string.IsNullOrWhiteSpace(SearchTrackingCode))
+          {
+              return true;
+          }
+          bool isMatch = !string.IsNullOrEmpty(x.TrackingCode) && x.TrackingCode.Contains(SearchTrackingCode, StringComparison.OrdinalIgnoreCase);
 
+          bool isRelated = x.CampaignRequestMainId is not null && Campaigns.Any(main => main.Id == x.CampaignRequestMainId &&
+      !string.IsNullOrEmpty(main.TrackingCode) && main.TrackingCode.Contains(SearchTrackingCode, StringComparison.OrdinalIgnoreCase));
+
+          return isMatch || isRelated;
+      };
+
+    private async Task TestVDN(string vdn)
+    {
+        var options = new DialogOptions()
+            {
+                MaxWidth = MaxWidth.Small,
+                FullWidth = true,
+                CloseButton = true,
+            };
+        Vdn = vdn;
+        var parameters = new DialogParameters
+        {
+            { "Vdn", vdn },
+
+        };
+        DialogService.Show<Components.TestVDN>("Test VDN", parameters, options);
+    }
 }
 
 
