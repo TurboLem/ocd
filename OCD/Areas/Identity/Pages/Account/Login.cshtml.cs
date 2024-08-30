@@ -44,7 +44,7 @@ namespace OCD.Areas.Identity.Pages.Account
                     
                     if (roles.Contains("Superuser"))
                     {
-                        return LocalRedirect("~/manager-dashboard");
+                        return LocalRedirect("~/dashboard");
                     }
                     else if (roles.Contains("Requester"))
                     {

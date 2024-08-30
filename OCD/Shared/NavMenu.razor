@@ -50,7 +50,7 @@
 
         <AuthorizeView Roles="Superuser">
             <Authorized>
-                <MudNavLink Href="/manager-dashboard" Icon="@Icons.Material.Filled.Home">Dashboard</MudNavLink>
+                <MudNavLink Href="/dashboard" Icon="@Icons.Material.Filled.Home">Dashboard</MudNavLink>
                 <MudNavLink Href="/user-management">User Management</MudNavLink>
 
             </Authorized>
@@ -101,7 +101,7 @@
             
             if (roles.Contains("Superuser"))
             {
-                homeUrl = "/manager-dashboard";
+                homeUrl = "/dashboard";
             }
             else if (roles.Contains("Requester"))
             {
