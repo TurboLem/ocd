@@ -129,7 +129,7 @@ public class InputRegisterModel
     public string Email { get; set; }
 
     [Required(ErrorMessage = "This field is required")]
-    [StringLength(6, MinimumLength = 6, ErrorMessage = "Your employee number should have a minimum of 6 characters")]
+    [StringLength(20,MinimumLength = 6, ErrorMessage = "Your employee number should have a minimum of 6 characters")]
     //[RegularExpression(@"(([a-z]|[A-Z])([a-z]|[A-Z])\d\d\d\d)", ErrorMessage = "Please enter a valid employee number")]
     public string EmployeeNumber { get; set; }
 
