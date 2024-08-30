@@ -7,7 +7,7 @@
 @inject ISnackbar Snackbar
 
 <MudDialog>
-    <TitleContent><MudText Typo="Typo.h5"></MudText>Edit @User.Name @User.Surname's Role</TitleContent>
+    <TitleContent><MudText Typo="Typo.h5"></MudText>Edit @User.Name's Role</TitleContent>
     <DialogContent>
         <MudText Typo="Typo.h6">Current Role: @SelectedRole</MudText>
         <MudSelect T="string" Label="New Role" @bind-Value="SelectedRole">

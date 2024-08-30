@@ -1,0 +1,74 @@
+﻿@page "/assign-manager-dialog"
+@using Microsoft.EntityFrameworkCore
+@using OCD.Data
+@inject IDialogService DialogService
+@inject IDbContextFactory<DataContext> DbContextFactory
+
+    <MudDialog>
+    <TitleContent><MudText Typo="Typo.h5"></MudText>Assign Manager</TitleContent>
+    <DialogContent>
+        <MudAutocomplete T="ApplicationUser"
+                         Label="Select Manager"
+                         @bind-Value="SelectedManager"
+                         SearchFunc="@(async (searchString, token) => await SearchManagers(searchString, token))"
+                         ToStringFunc="@(s => s == null ? string.Empty : $"{s.Name} {s.Surname}")"
+                         MaxItems="100"
+                         AnchorOrigin="Origin.BottomCenter"
+                         Variant="Variant.Outlined" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Color="Color.Secondary">Cancel</MudButton>
+        <MudButton OnClick="SaveAssignment" Color="Color.Primary">Save</MudButton>
+    </DialogActions>
+    </MudDialog>
+
+@code {
+    [CascadingParameter] public MudDialogInstance Dialog { get; set; } = default!;
+    [Parameter] public ApplicationUser UserToUpdate { get; set; } = default!;
+    private IEnumerable<ApplicationUser> Managers { get; set; } = default!;
+    private ApplicationUser SelectedManager { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using (var context = await DbContextFactory.CreateDbContextAsync())
+        {
+            Managers = context.Users.Where(u => u.IsManager == true).ToList();
+        }
+    }
+    private async Task SaveAssignment()
+    {
+        try
+        {
+            UserToUpdate.ManagerId = Guid.Parse(SelectedManager.Id);
+            using (var context = await DbContextFactory.CreateDbContextAsync())
+            {
+                context.Users.Update(UserToUpdate);
+                await context.SaveChangesAsync();
+               await DialogService.ShowMessageBox("Success", $"Manager has been assigned successfully.");
+            }
+            Dialog.Close();
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowMessageBox("Error", $"Failed to assign manager: {ex.Message}");
+        }
+    }
+    private Task<IEnumerable<ApplicationUser>> SearchManagers(string searchString, CancellationToken token)
+    {
+        return Search(Managers, searchString, b => $"{b.Name} {b.Surname}");
+    }
+
+    private Task<IEnumerable<T>> Search<T>(IEnumerable<T> items, string searchString, Func<T, string> selector)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+        {
+            return Task.FromResult(items);
+        }
+        var filteredItems = items
+            .Where(item => selector(item).Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(selector)
+            .ToList();
+        return Task.FromResult<IEnumerable<T>>(filteredItems);
+    }
+    private void Cancel() => Dialog.Cancel();
+}

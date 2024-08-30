@@ -8,58 +8,116 @@
 @inject IDbContextFactory<DataContext> DbContextFactory
 <AuthorizeView Roles="Superuser">
     <Authorized>
-       
-            <MudTabs ApplyEffectsToContainer="true" @bind-ActivePanelIndex="activeIndex">
-                <MudTabPanel Text="Dashboard" Icon="@Icons.Material.Filled.Dashboard">
-                    <MudText Typo="Typo.h6">User Requests</MudText>
-                    <div class="chip-container mb-3 mt-3">
-                        <MudChipSet T="Color">
 
-                            <MudChip Color="Color.Warning" Variant="Variant.Filled">@CurrentUserAccessRequests Total User Access Requests</MudChip>
+        <MudTabs ApplyEffectsToContainer="true" @bind-ActivePanelIndex="activeIndex">
+            <MudTabPanel Text="User Requests" Icon="@Icons.Material.Filled.People">
+                <MudText Typo="Typo.h6">User Requests</MudText>
+                <div class="chip-container mb-3 mt-3">
+                    <MudChipSet T="Color">
 
-                        </MudChipSet>
-                    </div>
+                        <MudChip Color="Color.Warning" Variant="Variant.Filled">@CurrentUserAccessRequests Total User Access Requests</MudChip>
 
-                    <MudDataGrid Class="shadow-md rounded-lg  border grid mt-7" Items="@PendingUsers" Hover="true" Striped="true" RowsPerPageOptions="new int[] { 10, 25, 50, 100 }" FixedHeader="true" Height="65vh" RowsPerPage="10" Style="background-color:white; ">
-                        <Columns>
-                            <PropertyColumn Property="x=>x.User.Name" Title="Name" />
-                            <PropertyColumn Property="x=>x.User.Surname" Title="Surname" />
-                            <PropertyColumn Property="x=>x.User.EmployeeNumber" Title="Employee Number" />
-                            <PropertyColumn Property="x=>x.Role" Title="Role" />
-                            <PropertyColumn Property="x => x.User.Email" Title="Email Address" />
+                    </MudChipSet>
+                </div>
 
-                            <TemplateColumn Title="Status">
-                                <CellTemplate Context="_context">
-                                    @if (_context.Item.User.IsActive == true)
+                <MudDataGrid Class="shadow-md rounded-lg  border grid mt-7"
+                             Items="@PendingUsers"
+                             Hover="true"
+                             Striped="true"
+                             FixedHeader="true"
+                             Height="65vh"
+                             RowsPerPage="10"
+                             Style="background-color:white; ">
+                    <Columns>
+                        <PropertyColumn Property="x=>x.User.Name" Title="Name" CellStyle=" white-space: nowrap" HeaderStyle="white-space:nowrap" />
+                        <PropertyColumn Property="x=>x.User.Surname" Title="Surname" CellStyle=" white-space: nowrap" HeaderStyle="white-space:nowrap" />
+                        <PropertyColumn Property="x=>x.User.EmployeeNumber" Title="Employee Number" CellStyle=" white-space: nowrap" HeaderStyle="white-space:nowrap" />
+                        <PropertyColumn Property="x=>x.Role" Title="Role" CellStyle=" white-space: nowrap" HeaderStyle="white-space:nowrap" />
+                        <PropertyColumn Property="x => x.User.Email" Title="Email Address" CellStyle=" white-space: nowrap" HeaderStyle="white-space:nowrap" />
+
+                        <TemplateColumn Title="Status">
+                            <CellTemplate Context="_context">
+                                @if (_context.Item.User.IsActive == true)
+                                {
+                                    <MudChip Color="Color.Success" Variant="Variant.Filled">Active</MudChip>
+                                }
+                                else
+                                {
+                                    <MudChip Color="Color.Error" Variant="Variant.Filled">Not Active</MudChip>
+                                }
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <TemplateColumn Title="Actions" CellClass=" justify-end">
+                            <CellTemplate Context="_context">
+                                <MudStack Row="true" Spacing="2">
+                                    <MudButton StartIcon="@Icons.Material.Filled.Edit" Variant="@Variant.Filled" Color="@Color.Secondary" Size="@Size.Small" OnClick="() => OpenEditDialog(_context.Item.User)">Confirm Role</MudButton>
+                                    <MudButton StartIcon="@Icons.Material.Filled.NotStarted" Variant="@Variant.Filled" Color="@Color.Primary" Size="@Size.Small" OnClick="@(async () => await ActivateAccount(_context.Item.User))">Activate Account</MudButton>
+                                    @if (_context.Item.IsActivating)
                                     {
-                                        <MudChip Color="Color.Success" Variant="Variant.Filled">Active</MudChip>
+                                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
                                     }
-                                    else
-                                    {
-                                        <MudChip Color="Color.Error" Variant="Variant.Filled">Not Active</MudChip>
-                                    }
-                                </CellTemplate>
-                            </TemplateColumn>
-                            <TemplateColumn Title="Actions" CellClass=" justify-end">
-                                <CellTemplate Context="_context">
-                                    <MudStack Row="true" Spacing="2">
-                                        <MudButton StartIcon="@Icons.Material.Filled.Edit" Variant="@Variant.Filled" Color="@Color.Secondary" Size="@Size.Small" OnClick="() => OpenEditDialog(_context.Item.User)">Confirm Role</MudButton>
-                                        <MudButton StartIcon="@Icons.Material.Filled.NotStarted" Variant="@Variant.Filled" Color="@Color.Primary" Size="@Size.Small" OnClick="@(async () => await ActivateAccount(_context.Item.User))">Activate Account</MudButton>
-                                        @if (_context.Item.IsActivating)
-                                        {
-                                            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
-                                        }
-                                    </MudStack>
-                                </CellTemplate>
-                            </TemplateColumn>
-                        </Columns>
-                        <PagerContent>
-                            <MudDataGridPager />
-                        </PagerContent>
-                    </MudDataGrid>
-                </MudTabPanel>
-            </MudTabs>
-      
+                                </MudStack>
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager />
+                    </PagerContent>
+                </MudDataGrid>
+            </MudTabPanel>
+            <MudTabPanel Text="Manage Users" Icon="@Icons.Material.Filled.ManageAccounts">
+                <MudText Typo="Typo.h6">All Users</MudText>
+                <MudDataGrid Class="shadow-md rounded-lg border grid mt-7"
+                             Items="@AllUsers"
+                             Hover="true"
+                             Striped="true"
+                             FixedHeader="true"
+                             Height="65vh"
+                             RowsPerPage="10"
+                             Style="background-color:white;">
+                    <Columns>
+                        <PropertyColumn Property="x => x.Name" Title="Name" CellStyle=" white-space: nowrap" HeaderStyle="white-space:nowrap" />
+                        <PropertyColumn Property="x => x.Surname" Title="Surname" CellStyle=" white-space: nowrap" HeaderStyle="white-space:nowrap" />
+                        <PropertyColumn Property="x => x.EmployeeNumber" Title="Employee Number" CellStyle=" white-space: nowrap" HeaderStyle="white-space:nowrap" />
+                        <PropertyColumn Property="x => x.Email" Title="Email Address" CellStyle=" white-space: nowrap" HeaderStyle="white-space:nowrap" />
+                        <TemplateColumn>
+                            <CellTemplate Context="_context">
+                                @if (_context.Item.IsManager == true)
+                                {
+                                    <MudChip Color="Color.Success" Variant="Variant.Filled">Manager</MudChip>
+                                }
+                                else
+                                {
+                                    <MudChip Color="Color.Error" Variant="Variant.Filled">Not a Manager</MudChip>
+                                }
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <TemplateColumn Title="Manager">
+                            <CellTemplate Context="_context">
+                                @if (_context.Item.ManagerId != null)
+                                {
+                                    var manager = Managers.FirstOrDefault(x => x.Id == _context.Item.ManagerId.ToString());
+                                    <MudChip Color="Color.Success" Variant="Variant.Filled">@manager?.Name @manager?.Surname</MudChip>
+                                }
+                                else
+                                {
+                                    <MudChip Color="Color.Error" Variant="Variant.Filled">No Manager Assigned</MudChip>
+                                }
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <TemplateColumn Title="Actions" CellClass="justify-end">
+                            <CellTemplate Context="_context">
+                                <MudButton StartIcon="@Icons.Material.Filled.PersonAdd" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="() => OpenAssignManagerDialog(_context.Item)">Set Manager</MudButton>
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager />
+                    </PagerContent>
+                </MudDataGrid>
+            </MudTabPanel>
+        </MudTabs>
+
     </Authorized>
     <NotAuthorized>
         <MudAlert Severity="Severity.Error">You are not authorized to view this page.</MudAlert>
@@ -84,14 +142,19 @@
     private int activeIndex;
     private string searchString = string.Empty;
     private bool IsProcessing = false;
-
+    private IEnumerable<ApplicationUser> AllUsers { get; set; } = [];
+    private IEnumerable<ApplicationUser> Managers { get; set; } = [];
+    private ApplicationUser SelectedManager { get; set; } = default!;
+    private Dictionary<string, string?> UserManagerSelections = new Dictionary<string, string?>();
 
     protected override async Task OnInitializedAsync()
     {
         using (var context = await DbContextFactory.CreateDbContextAsync())
         {
-            
+
             var users = await context.Users.Where(x => x.IsActive == false).AsNoTracking().ToListAsync();
+            AllUsers = await context.Users.AsNoTracking().ToListAsync();
+            Managers = AllUsers.Where(x => x.IsManager == true).ToList();
             var usersWithRoles = new List<UserWithRole>();
 
             foreach (var user in users)
@@ -108,7 +171,7 @@
             PendingUsers = usersWithRoles;
             CurrentUserAccessRequests = PendingUsers.Count();
         };
-       
+
     }
     private async Task ActivateAccount(ApplicationUser user)
 
@@ -123,12 +186,12 @@
         var context = await DbContextFactory.CreateDbContextAsync();
         context.Users.Update(user);
         var result = await context.SaveChangesAsync();
-        // var result = await UserManager.UpdateAsync(user);
+
         var subject = $"OCD Account Activation for {user.Name} {user.Surname}";
         var body = $"Dear {user.Name} {user.Surname}, your account has been activated. You can now login to the OCD system.";
         if (result == 1)
         {
-          //  await EmailService.SendTestEmail(subject, body);
+            //  await EmailService.SendTestEmail(subject, body);
             await RefreshUsers();
 
             Snackbar.Add($"{user.Name} {user.Surname} has been successfully granted access. A confirmation email has been sent to the user", Severity.Success);
@@ -144,12 +207,23 @@
         var parameters = new DialogParameters { ["User"] = user };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium };
         var dialog = DialogService.Show<EditRoleDialog>("Edit User Role", parameters, options);
-        var result = await dialog.Result; 
+        var result = await dialog.Result;
         if (result!.Canceled != true)
         {
             await RefreshUsers();
         }
 
+    }
+    private async void OpenAssignManagerDialog(ApplicationUser user)
+    {
+        var parameters = new DialogParameters { ["UserToUpdate"] = user };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium };
+        var dialog = DialogService.Show<AssignManagerDialog>("Assign Manager", parameters, options);
+        var result = await dialog.Result;
+        if (result!.Canceled != true)
+        {
+            await RefreshAllUsers();
+        }
     }
     private class UserWithRole
     {
@@ -176,6 +250,12 @@
 
         PendingUsers = usersWithRoles;
         CurrentUserAccessRequests = PendingUsers.Count();
+        StateHasChanged();
+    }
+    private async Task RefreshAllUsers()
+    {
+        using var context = await DbContextFactory.CreateDbContextAsync();
+        AllUsers = await context.Users.AsNoTracking().ToListAsync();
         StateHasChanged();
     }
 }
