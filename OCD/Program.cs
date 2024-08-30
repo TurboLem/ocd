@@ -30,7 +30,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 })
 //.AddClaimsPrincipalFactory<ApplicationUserClaimsPrincipalFactory>()
 .AddEntityFrameworkStores<DataContext>()
-//.AddDefaultTokenProviders(); 
+.AddDefaultTokenProviders();
 ;
 builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, ApplicationUserClaimsPrincipalFactory>();
 builder.Services.ConfigureApplicationCookie(options =>
