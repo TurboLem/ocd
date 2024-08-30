@@ -24,17 +24,6 @@ namespace OCD.Services
         {
             await SendEmailAsync(subject, message, emailAddress);
         }
-
-        public Task SendEmailToSuperUser(ApplicationUser user)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task SendEmailToUser(ApplicationUser user)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task SendTestEmail(string subject, string messageBody)
         {
             var smtpHost = _configuration["Smtp:Host"];

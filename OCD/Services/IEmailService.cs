@@ -1,13 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
-using OCD.Data;
-
-namespace OCD.Services
+﻿namespace OCD.Services
 {
     public interface IEmailService
     {
-        Task SendEmailToSuperUser(ApplicationUser user);
-        Task SendEmailToUser(ApplicationUser user);
-        Task SendTestEmail(string subject, string message);
+        Task SendTestEmail(string subject, string message); // for testing purposes
         Task SendCampaignActivationEmail(string subject, string message, string requesterEmailAdrress, string managerEmailAddress);
         Task SendEmail(string subject, string message, string emailAddress);
     }
