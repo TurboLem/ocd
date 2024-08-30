@@ -44,16 +44,18 @@
     public int CampaignRequestId { get; set; }
     private ApplicationUser LoggedInUser { get; set; }
     private CampaignRequest Campaign { get; set; } = new();
+    private ApplicationUser OpsMemberHandlingThisCampaign { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
 
         Campaign = await CampaignRequestService.GetCampaignRequestByIdAsync(CampaignRequestId);
 
+
     }
     private async Task Submit()
     {
-       
+
         if (isLoading)
         {
             return;
@@ -63,7 +65,7 @@
         try
         {
             await form.Validate();
-            if(!form.IsValid)
+            if (!form.IsValid)
             {
                 Snackbar.Add("Please confirm all the checkboxes", Severity.Error);
                 return;
@@ -76,7 +78,7 @@
             Campaign.IsConfirmedByRequester = true;
             using (var context = await DbContextFactory.CreateDbContextAsync())
             {
-                using (var transaction = context.Database.BeginTransaction())
+                using (var transaction = await context.Database.BeginTransactionAsync())
                 {
                     try
                     {
@@ -84,10 +86,12 @@
                         context.Update(Campaign);
                         await context.SaveChangesAsync();
 
+                        OpsMemberHandlingThisCampaign = await context.Users.FirstOrDefaultAsync(u => u.Id == Campaign.ActionedBy);
+
                         string message = $@"
                                 <html>
                                 <body>
-                                    <p>Dear Team,</p>
+                                    <p>Dear {OpsMemberHandlingThisCampaign!.Name} {OpsMemberHandlingThisCampaign.Surname},</p>
                                     <p><strong>{name} {surname}</strong> has confirmed the following for {Campaign.Description}:</p>
                                     <ul>
                                         <li>I have tested the new campaign & received a call back.</li>
@@ -97,14 +101,15 @@
                                     </ul>
                                 </body>
                                 </html>";
-                       // await EmailService.SendTestEmail($"Test VDN Confirmation for {Campaign.Description}", message);
+
+                        // await EmailService.SendEmail(subject: $"Test VDN Confirmation for {Campaign.Description}", message: message, emailAddress: OpsMemberHandlingThisCampaign.Email!);
                         await transaction.CommitAsync();
                         Snackbar.Add("Confirmation email has been sent to Ops team", Severity.Success);
 
                     }
                     catch (Exception exception)
                     {
-                        transaction.Rollback();
+                        await transaction.RollbackAsync();
                         Snackbar.Add("An error occurred while confirming. Please try again later", Severity.Error);
                     }
                 }

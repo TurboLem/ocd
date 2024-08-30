@@ -302,36 +302,37 @@
                 Snackbar.Add("Please fill in all required fields.", Severity.Error);
                 return;
             }
-            
-                var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-                var user = authState.User;
-                var name = user.FindFirst(ClaimTypes.GivenName)?.Value;
-                var surname = user.FindFirst(ClaimTypes.Surname)?.Value;
-                LoggedInUserId = user.FindFirst(ClaimTypes.NameIdentifier)!.Value!;
-                LoggedInUserFullName = $"{name} {surname}";
 
-                campaign.ActionedBy = LoggedInUserId;
-                campaign.ActionedDate = DateTime.Now;
-                campaign.IsPending = true;
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var name = user.FindFirst(ClaimTypes.GivenName)?.Value;
+            var surname = user.FindFirst(ClaimTypes.Surname)?.Value;
+            LoggedInUserId = user.FindFirst(ClaimTypes.NameIdentifier)!.Value!;
+            LoggedInUserFullName = $"{name} {surname}";
 
-                using (var context = await DbContextFactory.CreateDbContextAsync())
+            campaign.ActionedBy = LoggedInUserId;
+            campaign.ActionedDate = DateTime.Now;
+            campaign.IsPending = true;
+
+            using (var context = await DbContextFactory.CreateDbContextAsync())
+            {
+                using (var transaction = await context.Database.BeginTransactionAsync())
                 {
-                    using (var transaction = await context.Database.BeginTransactionAsync())
+                    try
                     {
-                        try
-                        {
-                            context.CampaignRequests.Update(campaign);
-                            await context.SaveChangesAsync();
+                        context.CampaignRequests.Update(campaign);
+                        await context.SaveChangesAsync();
 
-                            var subject = "Campaign Request Updated";
-                            var body = $@"<p>Dear {Requester.Name} {Requester.Surname},</p>
+                        var subject = "Campaign Request Updated";
+                        var body = $@"<p>Dear {Requester.Name} {Requester.Surname},</p>
                                           <p>Your campaign request ({campaign.Description}) has been updated with a new VDN/Tracking Code by {LoggedInUserFullName}.</p>
                                           <p>Kindly check the details and let us know if you need any further assistance.</p>
                                           <p>Regards,</p>
                                           <p>Ops Team</p>";
 
-                            // await EmailService.SendTestEmail(subject, body);
-                            await transaction.CommitAsync();
+                        
+                       // await EmailService.SendEmail(subject: subject, message: body, emailAddress: Requester.Email!);
+                        await transaction.CommitAsync();
 
                             Snackbar.Add("Campaign updated successfully!", Severity.Success);
                         await JSRuntime.InvokeVoidAsync("goBack");
