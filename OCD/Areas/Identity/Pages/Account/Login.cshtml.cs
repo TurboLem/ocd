@@ -24,7 +24,7 @@ namespace OCD.Areas.Identity.Pages.Account
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByEmailAsync(Input.Email);
-                // Check if the user is not null and isActive is false
+                
                 if (user is null)
                 {
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
