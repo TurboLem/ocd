@@ -82,7 +82,7 @@ namespace OCD.Areas.Identity.Pages.Account
 
                         if (result.Succeeded)
                         {
-                            await _userManager.AddToRoleAsync(user, Input.SelectedRole);
+                            await _userManager.AddToRoleAsync(user, Input.SelectedRole!);
                             var message = $"{Input.Name} {Input.Surname} has requested access to OCD as a {Input.SelectedRole}. Please log on to your dashboard to review the request and grant the user access.</p>";
                             var subject = "Request for access on OCD";
 
