@@ -11,7 +11,6 @@
 
         <MudTabs ApplyEffectsToContainer="true" @bind-ActivePanelIndex="activeIndex">
             <MudTabPanel Text="User Requests" Icon="@Icons.Material.Filled.People">
-                <MudText Typo="Typo.h6">User Requests</MudText>
                 <div class="chip-container mb-3 mt-3">
                     <MudChipSet T="Color">
 
@@ -28,6 +27,9 @@
                              Height="65vh"
                              RowsPerPage="10"
                              Style="background-color:white; ">
+                    <ToolBarContent>
+                        <MudText Typo="Typo.h6">User Access Requests</MudText>
+                    </ToolBarContent>
                     <Columns>
                         <PropertyColumn Property="x=>x.User.Name" Title="Name" CellStyle=" white-space: nowrap" HeaderStyle="white-space:nowrap" />
                         <PropertyColumn Property="x=>x.User.Surname" Title="Surname" CellStyle=" white-space: nowrap" HeaderStyle="white-space:nowrap" />
@@ -66,7 +68,6 @@
                 </MudDataGrid>
             </MudTabPanel>
             <MudTabPanel Text="Manage Users" Icon="@Icons.Material.Filled.ManageAccounts">
-                <MudText Typo="Typo.h6">All Users</MudText>
                 <MudDataGrid Class="shadow-md rounded-lg border grid mt-7"
                              Items="@AllUsers"
                              Hover="true"
@@ -74,7 +75,20 @@
                              FixedHeader="true"
                              Height="65vh"
                              RowsPerPage="10"
-                             Style="background-color:white;">
+                             Style="background-color:white;"
+                             QuickFilter="_quickFilter">
+                    <ToolBarContent>
+                        <MudText Typo="Typo.h6">All Users</MudText>
+                        <MudSpacer />
+                        <div class="col-md-4">
+                            <MudTextField @bind-Value="searchByNameSurname"
+                                          Placeholder="Search by Name or Surname"
+                                          Adornment="Adornment.Start"
+                                          Immediate="true"
+                                          AdornmentIcon="@Icons.Material.Filled.Search"
+                                          IconSize="Size.Medium" Class="mt-2" />
+                        </div>
+                    </ToolBarContent>
                     <Columns>
                         <PropertyColumn Property="x => x.Name" Title="Name" CellStyle=" white-space: nowrap" HeaderStyle="white-space:nowrap" />
                         <PropertyColumn Property="x => x.Surname" Title="Surname" CellStyle=" white-space: nowrap" HeaderStyle="white-space:nowrap" />
@@ -145,6 +159,7 @@
     private IEnumerable<ApplicationUser> AllUsers { get; set; } = [];
     private IEnumerable<ApplicationUser> Managers { get; set; } = [];
     private ApplicationUser SelectedManager { get; set; } = default!;
+    private string searchByNameSurname = string.Empty;
     private Dictionary<string, string?> UserManagerSelections = new Dictionary<string, string?>();
 
     protected override async Task OnInitializedAsync()
@@ -258,4 +273,15 @@
         AllUsers = await context.Users.AsNoTracking().ToListAsync();
         StateHasChanged();
     }
+    private Func<ApplicationUser, bool> _quickFilter => x =>
+       {
+           if (string.IsNullOrWhiteSpace(searchByNameSurname))
+           {
+               return true;
+           }
+           var fullName = $"{x.Name} {x.Surname}";
+           bool isMatch = !string.IsNullOrEmpty(fullName) && fullName.Contains(searchByNameSurname, StringComparison.OrdinalIgnoreCase);
+
+           return isMatch;
+       };
 }
