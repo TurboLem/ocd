@@ -47,7 +47,7 @@ namespace OCD.Areas.Identity.Pages.Account
                     values: new { area = "Identity", email = Input.Email, code = token },
                     protocol: Request.Scheme);
                 var emailBody = $"Please reset your password by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.";
-                await _emailService.SendEmail(subject: "Reset OCD Password", message: emailBody, emailAddress: Input.Email);
+               // await _emailService.SendEmail(subject: "Reset OCD Password", message: emailBody, emailAddress: Input.Email);
 
                 return RedirectToPage("./ForgotPasswordConfirmation");
             }
