@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using OCD.Data;
 using OCD.Services;
 using System.ComponentModel.DataAnnotations;
@@ -13,7 +14,7 @@ namespace OCD.Areas.Identity.Pages.Account
         [BindProperty]
         public InputRegisterModel Input { get; set; }
         public IEnumerable<ApplicationUser> Managers { get; set; }
-
+        public IEnumerable<ApplicationUser> Superusers { get; set; }
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
@@ -32,6 +33,18 @@ namespace OCD.Areas.Identity.Pages.Account
         {
            
             Managers = await _userManager.Users.Where(u => u.IsManager == true).ToListAsync();
+            var superuserRole = await _roleManager.FindByNameAsync("Superuser");
+            if (superuserRole != null)
+            {
+                var superuserIds = await _context.UserRoles
+                    .Where(ur => ur.RoleId == superuserRole.Id)
+                    .Select(ur => ur.UserId)
+                    .ToListAsync();
+
+                Superusers = await _userManager.Users
+                    .Where(u => superuserIds.Contains(u.Id))
+                    .ToListAsync();
+            }
         }
         public async Task<IActionResult> OnPostAsync()
         {
@@ -73,7 +86,10 @@ namespace OCD.Areas.Identity.Pages.Account
                             var message = $"{Input.Name} {Input.Surname} has requested access to OCD as a {Input.SelectedRole}. Please log on to your dashboard to review the request and grant the user access.</p>";
                             var subject = "Request for access on OCD";
 
-                           // await _emailService.SendTestEmail(subject, message);
+                           //foreach (var superuser in Superusers)
+                           // {
+                           //     await _emailService.SendEmail(subject: subject, message: message,emailAddress: superuser.Email!);
+                           // }
 
                             await transaction.CommitAsync();
 
