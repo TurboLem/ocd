@@ -9,5 +9,6 @@ namespace OCD.Services
         Task SendEmailToUser(ApplicationUser user);
         Task SendTestEmail(string subject, string message);
         Task SendCampaignActivationEmail(string subject, string message, string requesterEmailAdrress, string managerEmailAddress);
+        Task SendEmail(string subject, string message, string emailAddress);
     }
 }

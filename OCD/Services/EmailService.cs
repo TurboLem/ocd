@@ -20,6 +20,11 @@ namespace OCD.Services
             await SendEmailAsync(subject, message, requesterEmailAdrress, additionalEmailAddresses);
         }
 
+        public async Task SendEmail(string subject, string message, string emailAddress)
+        {
+            await SendEmailAsync(subject, message, emailAddress);
+        }
+
         public Task SendEmailToSuperUser(ApplicationUser user)
         {
             throw new NotImplementedException();
@@ -33,8 +38,9 @@ namespace OCD.Services
         public async Task SendTestEmail(string subject, string messageBody)
         {
             var smtpHost = _configuration["Smtp:Host"];
-            var smtpUsername = Environment.GetEnvironmentVariable("GMAIL_SMTP_USER") ?? _configuration["Smtp:Username"];
-            var smtpPassword = Environment.GetEnvironmentVariable("GMAIL_SMTP_PASS") ?? _configuration["Smtp:Password"];
+            var smtpUsername =  _configuration["Smtp:Username"];
+            var smtpPassword = Environment.GetEnvironmentVariable("OCD_SMTP_PASS") ?? _configuration["Smtp:Password"];
+            var from = _configuration["Smtp:From"];
 
             var smtpClient = new SmtpClient(smtpHost)
             {
@@ -44,19 +50,20 @@ namespace OCD.Services
             };
             var message = new MailMessage
             {
-                From = new MailAddress(smtpUsername ?? _configuration["Smtp:From"]!),
+                From = new MailAddress(from!),
                 Subject = subject,
                 Body = messageBody,
                 IsBodyHtml = true,
             };
-            message.To.Add("thegreatanubis179@gmail.com");
+            message.To.Add("");
             await smtpClient.SendMailAsync(message);
         }
         private async Task SendEmailAsync(string subject, string messageBody, string emailAddress, IEnumerable<string>? additionalEmailAddresses = null)
         {
             var smtpHost = _configuration["Smtp:Host"];
-            var smtpUsername = Environment.GetEnvironmentVariable("GMAIL_SMTP_USER") ?? _configuration["Smtp:Username"];
-            var smtpPassword = Environment.GetEnvironmentVariable("GMAIL_SMTP_PASS") ?? _configuration["Smtp:Password"];
+            var smtpUsername = _configuration["Smtp:Username"];
+            var smtpPassword = Environment.GetEnvironmentVariable("OCD_SMTP_PASS") ?? _configuration["Smtp:Password"];
+            var from = _configuration["Smtp:From"];
 
             if (string.IsNullOrEmpty(smtpHost) || string.IsNullOrEmpty(smtpUsername) || string.IsNullOrEmpty(smtpPassword))
             {
@@ -72,7 +79,7 @@ namespace OCD.Services
 
             using var message = new MailMessage
             {
-                From = new MailAddress(smtpUsername ?? _configuration["Smtp:From"]!),
+                From = new MailAddress(from!),
                 Subject = subject,
                 Body = messageBody,
                 IsBodyHtml = true,
