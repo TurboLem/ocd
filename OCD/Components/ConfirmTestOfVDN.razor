@@ -102,7 +102,7 @@
                                 </body>
                                 </html>";
 
-                        // await EmailService.SendEmail(subject: $"Test VDN Confirmation for {Campaign.Description}", message: message, emailAddress: OpsMemberHandlingThisCampaign.Email!);
+                        await EmailService.SendEmail(subject: $"Test VDN Confirmation for {Campaign.Description}", message: message, emailAddress: OpsMemberHandlingThisCampaign.Email!);
                         await transaction.CommitAsync();
                         Snackbar.Add("Confirmation email has been sent to Ops team", Severity.Success);
 

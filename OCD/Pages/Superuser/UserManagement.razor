@@ -206,7 +206,7 @@
         var body = $"Dear {user.Name} {user.Surname}, your account has been activated. You can now login to the OCD system.";
         if (result == 1)
         {
-           // await EmailService.SendEmail(subject: subject, message: body, emailAddress: user.Email!);
+            await EmailService.SendEmail(subject: subject, message: body, emailAddress: user.Email!);
             await RefreshUsers();
 
             Snackbar.Add($"{user.Name} {user.Surname} has been successfully granted access. A confirmation email has been sent to the user", Severity.Success);

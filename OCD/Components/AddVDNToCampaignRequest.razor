@@ -331,7 +331,7 @@
                                           <p>Ops Team</p>";
 
                         
-                       // await EmailService.SendEmail(subject: subject, message: body, emailAddress: Requester.Email!);
+                        await EmailService.SendEmail(subject: subject, message: body, emailAddress: Requester.Email!);
                         await transaction.CommitAsync();
 
                             Snackbar.Add("Campaign updated successfully!", Severity.Success);
