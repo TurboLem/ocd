@@ -35,7 +35,7 @@ namespace OCD.Services
             {
                 Port = int.Parse(_configuration["Smtp:Port"]!),
                 Credentials = new NetworkCredential(smtpUsername, smtpPassword),
-                EnableSsl = true,
+                EnableSsl = false,
             };
             var message = new MailMessage
             {
@@ -63,7 +63,7 @@ namespace OCD.Services
             {
                 Port = int.Parse(_configuration["Smtp:Port"]!),
                 Credentials = new NetworkCredential(smtpUsername, smtpPassword),
-                EnableSsl = true,
+                EnableSsl = false,
             };
 
             using var message = new MailMessage
