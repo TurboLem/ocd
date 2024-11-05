@@ -38,7 +38,7 @@ variables:
   - name: K8s-ServiceConnection-UAT
     value: "NKE UAT"
   - name: K8s-ServiceConnection-Prod
-    value: Kubernetes_OnPrem_Prod_KubeConfig
+    value: "Generic-Prod-RHEL9"
   - name: KongEnabled
     value: true
 
